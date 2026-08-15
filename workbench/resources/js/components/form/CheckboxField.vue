@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import type { FormField } from "@inertify/form-vue";
+import Checkbox from "@/components/ui/Checkbox.vue";
+
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
   field: FormField;
@@ -14,10 +18,10 @@ const props = defineProps<{
 }>();
 
 const inputId = `field-${props.name.replace(/[^a-z0-9_-]/gi, "-")}`;
+const checked = computed(() => props.value === (props.field.trueValue ?? true));
 
-function change(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  props.setValue(input.checked ? (props.field.trueValue ?? true) : (props.field.falseValue ?? false));
+function change(value: boolean): void {
+  props.setValue(value ? (props.field.trueValue ?? true) : (props.field.falseValue ?? false));
 }
 </script>
 
@@ -27,16 +31,16 @@ function change(event: Event): void {
       :for="inputId"
       class="flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-4 text-sm"
     >
-      <input
+      <Checkbox
         :id="inputId"
-        :ref="registerElement"
-        type="checkbox"
+        :ref="(element) => registerElement(element?.input ?? element?.$el ?? element)"
         :name="name"
-        :checked="value === (field.trueValue ?? true)"
-        :disabled="disabled || readonly"
-        class="mt-0.5 size-4 accent-primary"
+        :model-value="checked"
+        :disabled="disabled"
+        :readonly="readonly"
+        class="mt-0.5"
         v-bind="field.dataAttributes ?? {}"
-        @change="change"
+        @update:model-value="change"
         @blur="blur"
       />
       <span>

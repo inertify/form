@@ -1,12 +1,106 @@
-import { h } from "vue";
+import { h, nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import Form from "../resources/js/components/Form";
-import HeadlessFormFields from "../resources/js/components/HeadlessFormFields";
-import HeadlessFormFieldsets from "../resources/js/components/HeadlessFormFieldsets";
-import { makeField, makeResource } from "./fixtures";
+import {
+  createFormRenderer,
+  FormCollection,
+  FormErrors,
+  FormFieldsets,
+  FormProvider,
+  FormSubmit,
+  FormUploads,
+  FormWizard,
+  Wizard,
+} from "../resources/js/components";
+import { makeField, makeFieldset, makeResource } from "./fixtures";
+
+const { FormFields } = createFormRenderer();
+
+function makeFieldsetSelectorResource() {
+  return makeResource(
+    { first: "A", second: "B", third: "C", fourth: "D" },
+    [],
+    {
+      fieldsets: [
+        makeFieldset([makeField("first")], { id: "first" }),
+        makeFieldset([makeField("second")], { id: null }),
+        makeFieldset([makeField("third")], {
+          id: "third",
+          visibility: false,
+        }),
+        makeFieldset([makeField("fourth")], { id: "fourth" }),
+      ],
+    },
+  );
+}
+
+function fieldsetOutput({
+  id,
+  index,
+  originalIndex,
+  fields,
+  visible,
+}: {
+  id: string;
+  index: number;
+  originalIndex: number;
+  fields: Array<{ path: string }>;
+  visible: boolean;
+}) {
+  return h(
+    "output",
+    {
+      "data-fieldset": id,
+      "data-index": index,
+      "data-original-index": originalIndex,
+      "data-visible": String(visible),
+    },
+    fields.map((field) => field.path).join(","),
+  );
+}
+
+function mountFieldsetSelector(props: Record<string, unknown>) {
+  return mount(Form, {
+    props: { form: makeFieldsetSelectorResource() },
+    slots: {
+      default: ({ form }) =>
+        h(
+          FormFieldsets,
+          { ...props, form },
+          { default: fieldsetOutput },
+        ),
+    },
+  });
+}
 
 describe("renderless form components", () => {
+  it("uses unprefixed public component names", () => {
+    expect(
+      [
+        Form,
+        Wizard,
+        FormProvider,
+        FormFieldsets,
+        FormErrors,
+        FormSubmit,
+        FormWizard,
+        FormUploads,
+        FormCollection,
+      ].map((component) => component.name),
+    ).toEqual([
+      "Form",
+      "Wizard",
+      "FormProvider",
+      "FormFieldsets",
+      "FormErrors",
+      "FormSubmit",
+      "FormWizard",
+      "FormUploads",
+      "FormCollection",
+    ]);
+  });
+
   it("renders no package-owned element without a consumer slot", () => {
     const wrapper = mount(Form, {
       props: {
@@ -40,21 +134,21 @@ describe("renderless form components", () => {
   it("prioritizes qualified field, normalized type, and default slots", () => {
     const resource = makeResource(
       { email: "ada@example.com" },
-      [makeField("email", "TextInput")],
+      [makeField("email", "Text")],
     );
     const wrapper = mount(Form, {
       props: { form: resource },
       slots: {
         default: ({ form }) =>
           h(
-            HeadlessFormFields,
+            FormFields,
             { form },
             {
               "before-email-field": () => h("i", "before"),
               "email-field": () => h("b", "deprecated fallback"),
               "field-email": ({ value }: { value: unknown }) =>
                 h("b", String(value)),
-              "type-text-input": () => h("b", "wrong type"),
+              "type-text": () => h("b", "wrong type"),
               "after-email-field": () => h("i", "after"),
             },
           ),
@@ -68,14 +162,14 @@ describe("renderless form components", () => {
 
   it("keeps the upstream name-field slot as a deprecated final fallback", () => {
     const resource = makeResource({ email: "ada@example.com" }, [
-      makeField("email", "TextInput"),
+      makeField("email", "Text"),
     ]);
     const wrapper = mount(Form, {
       props: { form: resource },
       slots: {
         default: ({ form }) =>
           h(
-            HeadlessFormFields,
+            FormFields,
             { form },
             {
               "email-field": ({ value }: { value: unknown }) =>
@@ -102,7 +196,7 @@ describe("renderless form components", () => {
       slots: {
         default: ({ form }) =>
           h(
-            HeadlessFormFields,
+            FormFields,
             { form },
             {
               "field-one": () => h("span", "field"),
@@ -128,7 +222,7 @@ describe("renderless form components", () => {
       slots: {
         default: ({ form }) =>
           h(
-            HeadlessFormFieldsets,
+            FormFieldsets,
             { form },
             {
               "before-fieldset-1-fieldset": () => h("span", "before"),
@@ -141,6 +235,97 @@ describe("renderless form components", () => {
     });
 
     expect(wrapper.text()).toBe("beforefieldset-1after");
+  });
+
+  it("selects fieldsets by ID without changing schema order or original indexes", () => {
+    const selected = mountFieldsetSelector({
+      only: ["fourth", "first", "fieldset-2", "missing"],
+      except: "first",
+    });
+
+    expect(
+      selected.findAll("[data-fieldset]").map((fieldset) => ({
+        id: fieldset.attributes("data-fieldset"),
+        index: fieldset.attributes("data-index"),
+        originalIndex: fieldset.attributes("data-original-index"),
+      })),
+    ).toEqual([
+      { id: "fieldset-2", index: "0", originalIndex: "1" },
+      { id: "fourth", index: "1", originalIndex: "3" },
+    ]);
+
+    const excluded = mountFieldsetSelector({
+      except: ["first", "fourth", "missing"],
+    });
+    expect(
+      excluded
+        .findAll("[data-fieldset]")
+        .map((fieldset) => fieldset.attributes("data-fieldset")),
+    ).toEqual(["fieldset-2"]);
+
+    const generated = mountFieldsetSelector({
+      only: "fieldset-2",
+      except: ["missing"],
+    });
+    expect(generated.get("[data-fieldset]").attributes("data-fieldset")).toBe(
+      "fieldset-2",
+    );
+
+    expect(mountFieldsetSelector({ only: "missing" }).find("output").exists())
+      .toBe(false);
+    expect(mountFieldsetSelector({ only: [] }).find("output").exists()).toBe(
+      false,
+    );
+  });
+
+  it("applies visibility after fieldset selection unless hidden sets are included", () => {
+    const visible = mountFieldsetSelector({ only: ["first", "third"] });
+    expect(
+      visible
+        .findAll("[data-fieldset]")
+        .map((fieldset) => fieldset.attributes("data-fieldset")),
+    ).toEqual(["first"]);
+
+    const hidden = mountFieldsetSelector({
+      only: "third",
+      includeHidden: true,
+    });
+    const fieldset = hidden.get('[data-fieldset="third"]');
+
+    expect(fieldset.attributes("data-index")).toBe("0");
+    expect(fieldset.attributes("data-original-index")).toBe("2");
+    expect(fieldset.attributes("data-visible")).toBe("false");
+    expect(fieldset.text()).toBe("third");
+  });
+
+  it("reacts to in-place fieldset selector array changes", async () => {
+    const only = ref(["first"]);
+    const wrapper = mount(Form, {
+      props: { form: makeFieldsetSelectorResource() },
+      slots: {
+        default: ({ form }) =>
+          h(
+            FormFieldsets,
+            { form, only: only.value },
+            { default: fieldsetOutput },
+          ),
+      },
+    });
+
+    expect(
+      wrapper
+        .findAll("[data-fieldset]")
+        .map((fieldset) => fieldset.attributes("data-fieldset")),
+    ).toEqual(["first"]);
+
+    only.value.splice(0, 1, "fourth", "fieldset-2");
+    await nextTick();
+
+    expect(
+      wrapper
+        .findAll("[data-fieldset]")
+        .map((fieldset) => fieldset.attributes("data-fieldset")),
+    ).toEqual(["fieldset-2", "fourth"]);
   });
 
   it("emits the complete successful submission lifecycle and preserves callbacks", () => {

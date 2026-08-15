@@ -4,7 +4,7 @@ import { useFormCollections } from "../useFormCollections";
 import type { UseFormApi } from "../types";
 
 export default defineComponent({
-  name: "HeadlessFormCollection",
+  name: "FormCollection",
   props: {
     form: {
       type: Object as PropType<UseFormApi>,
@@ -20,7 +20,7 @@ export default defineComponent({
 
     if (!form) {
       throw new Error(
-        "HeadlessFormCollection requires a `form` prop or form provider context.",
+        "FormCollection requires a `form` prop or form provider context.",
       );
     }
 

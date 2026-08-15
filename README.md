@@ -3,10 +3,10 @@
 </div>
 
 <p align="center">
-    <a href="https://packagist.org/packages/enkot/inertify-form"><img src="https://img.shields.io/packagist/v/enkot/inertify-form.svg?style=flat-square" alt="Packagist"></a>
-    <a href="https://packagist.org/packages/enkot/inertify-form"><img src="https://img.shields.io/packagist/php-v/enkot/inertify-form.svg?style=flat-square" alt="Supported PHP versions"></a>
+    <a href="https://packagist.org/packages/inertify/form"><img src="https://img.shields.io/packagist/v/inertify/form.svg?style=flat-square" alt="Packagist"></a>
+    <a href="https://packagist.org/packages/inertify/form"><img src="https://img.shields.io/packagist/php-v/inertify/form.svg?style=flat-square" alt="Supported PHP versions"></a>
     <a href="https://github.com/enkot/inertify-form/actions"><img src="https://img.shields.io/github/actions/workflow/status/enkot/inertify-form/tests.yml?branch=main&label=tests&style=flat-square" alt="Test status"></a>
-    <a href="https://packagist.org/packages/enkot/inertify-form"><img src="https://img.shields.io/packagist/dt/enkot/inertify-form.svg?style=flat-square" alt="Total downloads"></a>
+    <a href="https://packagist.org/packages/inertify/form"><img src="https://img.shields.io/packagist/dt/inertify/form.svg?style=flat-square" alt="Total downloads"></a>
 </p>
 
 Inertify Form is a completely headless, schema-driven form library for Laravel, Inertia, and Vue. Laravel owns schema, authorization, validation, binding, and uploads. The Vue package owns form state and behavior. Your application owns every element, class, component, icon, and accessibility decision.
@@ -30,7 +30,7 @@ React is not supported.
 Install the Laravel and Vue packages:
 
 ```bash
-composer require enkot/inertify-form
+composer require inertify/form
 npm install @inertify/form-vue
 ```
 
@@ -192,7 +192,7 @@ Authorization may be declared on the form, a fieldset, or a field with `authoriz
 
 ## Render your own Vue markup
 
-`HeadlessForm` creates the form engine, provides it to descendants, and returns only slot content. `HeadlessFormFields` resolves slots in this exact order:
+`Form` creates the form engine, provides it to descendants, and returns only slot content. Create the application field components with `createFormRenderer()`. Its generated `FormFields` resolves slots in this exact order:
 
 1. `field-{path}` slot
 2. `type-{component}` slot, normalized to kebab case
@@ -204,22 +204,24 @@ Here, `path` is the fully qualified data path, including collection indexes. The
 ```vue
 <script setup lang="ts">
 import {
-  HeadlessForm,
-  HeadlessFormFields,
+  createFormRenderer,
+  Form,
   type FormResource,
 } from '@inertify/form-vue'
 import { Input } from '@/components/ui/input'
 
 defineProps<{ form: FormResource }>()
+
+const { FormFields } = createFormRenderer()
 </script>
 
 <template>
-  <HeadlessForm :form="form">
+  <Form :form="form">
     <template #default="{ form: context, submit, processing }">
       <form @submit.prevent="submit()">
-        <HeadlessFormFields :form="context">
+        <FormFields :form="context">
           <template
-            #type-text-input="{
+            #type-text="{
               field,
               name,
               value,
@@ -245,12 +247,12 @@ defineProps<{ form: FormResource }>()
             />
             <p v-if="error" role="alert">{{ error }}</p>
           </template>
-        </HeadlessFormFields>
+        </FormFields>
 
         <button type="submit" :disabled="processing">Save</button>
       </form>
     </template>
-  </HeadlessForm>
+  </Form>
 </template>
 ```
 
@@ -258,7 +260,87 @@ defineProps<{ form: FormResource }>()
 
 The field slot also receives `controller`, `errors`, `visible`, `touched`, `dirty`, `required`, `validate`, and mutation helpers. `name` is the qualified path, while `field.path` and `field.schemaField` expose the resolved path and original schema. Registering the consumer-owned input element enables `scrollToFirstError` without requiring package markup.
 
-Use `HeadlessFormProvider` when only context provision is needed, `HeadlessFormFieldsets` for fieldset-level rendering, `HeadlessWizard` for wizard navigation, `HeadlessFormCollection` for stable collection identities and move operations, and `HeadlessFormUploads` for upload state. `Form` is an alias-compatible renderless entry point. These components return consumer slot nodes or `null`; none adds a package-owned DOM element.
+### Register application renderers once
+
+Applications with several form pages can use `createFormRenderer()` to register application-owned field components once. The factory returns `FormFields` for schema-order rendering and `FormField` for explicit placement. Calling it without options creates the slot-only components shown above. Its traversal engine is internal, and it does not register global state or package-owned markup.
+
+```ts
+// resources/js/components/form/index.ts
+import {
+  createFormRenderer,
+  type FormFieldRenderer,
+} from '@inertify/form-vue'
+import CheckboxField from './CheckboxField.vue'
+import TextField from './TextField.vue'
+import UnsupportedField from './UnsupportedField.vue'
+
+const renderers = {
+  Text: TextField,
+  Textarea: {
+    component: TextField,
+    props: { multiline: true },
+  },
+  Checkbox: CheckboxField,
+  Submit: null,
+} satisfies Record<string, FormFieldRenderer>
+
+export const { FormField, FormFields } = createFormRenderer({
+  name: 'AppForm',
+  renderers,
+  fallback: UnsupportedField,
+})
+```
+
+Registry keys are the exact serialized `component` discriminators, which are frontend protocol keys rather than PHP class names. For example, `TextInput`, `OtpInput`, and `Hidden` serialize as `Text`, `Otp`, and `Hidden`. A component renders with the complete field slot payload, `{ component, props }` adds preset props, and `null` marks a field as intentionally renderless. The behavioral slot payload remains authoritative if a preset uses the same key. Unknown fields render `null` unless the application supplies `fallback` or an `unsupported` slot. Each factory call snapshots an isolated registry and is safe to use during SSR. Renderers that declare only part of the payload should use `defineOptions({ inheritAttrs: false })` so unused controller objects and callbacks do not fall through to their root DOM element.
+
+Render the whole schema with the registered components:
+
+```vue
+<FormFields :form="formApi" />
+```
+
+`FormFields` renders declared layout fields once. A registered collection renderer owns its repeater or block descendants, preventing nested controls from being emitted a second time. Render one resolved descendant explicitly with `FormField` and its qualified path when a custom layout needs it.
+
+Or place registered fields explicitly in any application layout:
+
+```vue
+<div class="grid gap-6 md:grid-cols-2">
+  <FormField name="name" />
+  <FormField name="email" />
+</div>
+
+<FormField name="bio" />
+```
+
+The generated components preserve validation, conditional visibility, uploads, qualified collection paths, and first-error registration. They also forward `field-*`, `type-*`, `before-*`, `after-*`, and default slots for page-specific overrides. The application still owns every registered renderer and every emitted element. See the workbench's [`form/index.ts`](workbench/resources/js/components/form/index.ts) for a complete shadcn-vue registration.
+
+Use `FormProvider` when only context provision is needed, `FormFieldsets` for fieldset-level rendering, `FormWizard` for wizard navigation, `FormCollection` for stable collection identities and move operations, and `FormUploads` for upload state. These components and the components returned by `createFormRenderer()` return consumer slot nodes or `null`; none adds a package-owned DOM element.
+
+`FormFieldsets` selects server-declared groups by exact resolved ID. Its `only` and `except` props each accept one string or a readonly string array; `only` narrows first, then `except` removes matches, so exclusion wins. Selection preserves schema order and is independent of visibility—use `include-hidden` separately when hidden fieldsets or fields should be included. Give selectable fieldsets stable, unique PHP IDs with `Fieldset::id()` instead of relying on position-derived fallback IDs.
+
+```vue
+<script setup lang="ts">
+import { FormFieldsets } from '@inertify/form-vue'
+import { FormFields } from '@/components/form'
+
+const cardFieldsets = ['identity', 'preferences', 'internal'] as const
+</script>
+
+<template>
+  <FormFieldsets
+    :only="cardFieldsets"
+    except="internal"
+    v-slot="{ fieldset }"
+  >
+    <section class="card">
+      <h2>{{ fieldset.legend }}</h2>
+      <FormFields :fieldset="fieldset" />
+    </section>
+  </FormFieldsets>
+</template>
+```
+
+For a fixed page layout, place `<FormFields fieldset="identity" />` inside each application-owned card instead of iterating fieldsets.
 
 All behavior is also available composables-first:
 
@@ -284,8 +366,8 @@ The engine supports nested values and errors, dirty and touched state, transform
 The npm package has explicit root, component, and composable entry points with ESM, CommonJS, and declaration outputs:
 
 ```ts
-import { HeadlessForm, useForm, type FormResource } from '@inertify/form-vue'
-import { HeadlessFormFields } from '@inertify/form-vue/components'
+import { Form, createFormRenderer, useForm, type FormResource } from '@inertify/form-vue'
+import { FormProvider } from '@inertify/form-vue/components'
 import { useFormCombobox, useFormUploads } from '@inertify/form-vue/composables'
 ```
 
@@ -314,9 +396,9 @@ Combobox::make('assignee_id', 'Assignee')
 The Vue engine assumes the owning property is named `form`. If it is named differently, identify it when creating the engine:
 
 ```vue
-<HeadlessForm :form="profileForm" :options="{ propKey: 'profileForm' }">
+<Form :form="profileForm" :options="{ propKey: 'profileForm' }">
   <!-- app-owned markup -->
-</HeadlessForm>
+</Form>
 ```
 
 Use `source()` when search, grouping, selected hydration, or creation belongs in a dedicated application endpoint:
@@ -359,7 +441,7 @@ File::make('video')->directToStorage('s3');       // direct/multipart
 
 `storeWithForm()` submits native browser files with the form. Temporary uploads transfer before submission, chunked uploads resume from a reported byte offset, and direct uploads use the configured disk's temporary upload URL or multipart API when available. Non-S3 disks use the package's multipart fallback.
 
-The serialized field includes the documented flat route properties and an additive headless upload descriptor. `useFormUploads` and `HeadlessFormUploads` expose progress, cancellation, pause/resume, retry, removal, reordering, and clearing. Tokens are encrypted and expiring; the server rejects tampered, expired, disk-mismatched, or validation-profile-mismatched tokens.
+The serialized field includes the documented flat route properties and an additive headless upload descriptor. `useFormUploads` and `FormUploads` expose progress, cancellation, pause/resume, retry, removal, reordering, and clearing. Tokens are encrypted and expiring; the server rejects tampered, expired, disk-mismatched, or validation-profile-mismatched tokens.
 
 File constraints such as `image()`, `accept()`, `minSize()`, `maxSize()`, and `dimensions()` are applied to upload content rather than token strings. Use `requireValidatedUploads()` and `validateUploadsUsing()` for reusable validation profiles. Existing files can be serialized with `ExistingFile::fromDisk()` or the optional Media Library adapter.
 
@@ -540,6 +622,10 @@ composer serve
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+## Documentation site
+
+The Docus site source lives in the [GitHub `docs` directory](https://github.com/enkot/inertify-form/tree/main/docs). From the repository root, install and run it with `npm install --prefix docs` and `npm run dev --prefix docs`.
 
 ## Security
 

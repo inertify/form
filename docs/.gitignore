@@ -1,0 +1,18 @@
+# Nuxt development and build output
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Dependencies
+node_modules
+
+# Local files
+.env
+.env.*
+!.env.example
+.vercel
+*.log
+.DS_Store

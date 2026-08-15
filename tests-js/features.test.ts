@@ -23,7 +23,7 @@ describe("feature composables", () => {
       [],
       {
         fieldsets: [
-          makeFieldset([makeField("name", "TextInput", { precognitive: true })], {
+          makeFieldset([makeField("name", "Text", { precognitive: true })], {
             id: null,
             legend: "Identity",
           }),

@@ -7,9 +7,9 @@ import { makeField, makeFieldset, makeResource } from "./fixtures";
 
 describe("useForm", () => {
   it.each([
-    [makeField("text", "TextInput"), ""],
+    [makeField("text", "Text"), ""],
     [makeField("slug", "Slug"), ""],
-    [makeField("otp", "OtpInput"), ""],
+    [makeField("otp", "Otp"), ""],
     [makeField("check", "Checkbox", { falseValue: "no" }), "no"],
     [makeField("toggle", "Toggle", { offValue: 0 }), 0],
     [makeField("keyed", "KeyValue"), {}],
@@ -80,7 +80,7 @@ describe("useForm", () => {
       { kind: "person", company: "Keep initially" },
       [
         makeField("kind"),
-        makeField("company", "TextInput", {
+        makeField("company", "Text", {
           visibility: { field: "kind", operator: "=", value: "business" },
           clearWhenHidden: true,
         }),
@@ -101,18 +101,18 @@ describe("useForm", () => {
     const repeater = makeField("items", "Repeater", {
       schema: [
         makeField("kind"),
-        makeField("company", "TextInput", {
+        makeField("company", "Text", {
           visibility: { field: "kind", operator: "=", value: "business" },
           clearWhenHidden: true,
         }),
-        makeField("root_note", "TextInput", {
+        makeField("root_note", "Text", {
           visibility: {
             field: "$.account_type",
             operator: "=",
             value: "team",
           },
         }),
-        makeField("fallback_note", "TextInput", {
+        makeField("fallback_note", "Text", {
           visibility: {
             field: "account_type",
             operator: "=",
@@ -216,7 +216,7 @@ describe("useForm", () => {
         [
           makeField("first"),
           makeField("second"),
-          makeField("result", "TextInput", {
+          makeField("result", "Text", {
             visibility: {
               mode: "or",
               conditions: [
@@ -239,10 +239,10 @@ describe("useForm", () => {
         [
           makeField("value"),
           makeField("list"),
-          makeField("numeric_result", "TextInput", {
+          makeField("numeric_result", "Text", {
             visibility: { field: "value", operator: ">", value: 1 },
           }),
-          makeField("list_result", "TextInput", {
+          makeField("list_result", "Text", {
             visibility: { field: "list", operator: "not_empty" },
           }),
         ],
@@ -278,7 +278,7 @@ describe("useForm", () => {
     }));
     const form = useForm(
       makeResource({ email: "bad" }, [
-        makeField("email", "TextInput", { precognitive: true }),
+        makeField("email", "Text", { precognitive: true }),
       ]),
       { validationTransport: transport },
     );

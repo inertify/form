@@ -1,10 +1,10 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "enkot/inertify-form",
+    "name": "inertify/form",
     "description": "Headless form tooling for Laravel + Inertia + Vue",
     "keywords": [
         "laravel",
-        "enkot",
+        "inertify",
         "inertify-form"
     ],
     "homepage": "https://github.com/enkot/inertify-form",

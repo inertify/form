@@ -7,7 +7,7 @@ import type {
 
 export function makeField(
   name: string,
-  component = "TextInput",
+  component = "Text",
   overrides: Partial<FormField> = {},
 ): FormField {
   return {

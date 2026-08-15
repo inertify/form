@@ -4,7 +4,7 @@ import { useFormWizard } from "../useFormWizard";
 import type { UseFormApi } from "../types";
 
 export default defineComponent({
-  name: "HeadlessFormWizard",
+  name: "FormWizard",
   props: {
     form: {
       type: Object as PropType<UseFormApi>,
@@ -16,7 +16,7 @@ export default defineComponent({
 
     if (!form) {
       throw new Error(
-        "HeadlessFormWizard requires a `form` prop or form provider context.",
+        "FormWizard requires a `form` prop or form provider context.",
       );
     }
 

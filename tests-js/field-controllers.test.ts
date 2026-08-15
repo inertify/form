@@ -18,7 +18,7 @@ describe("field-specific controllers", () => {
   it("applies text masks without rendering an input", () => {
     const form = useForm(
       makeResource({ phone: "" }, [
-        makeField("phone", "TextInput", { mask: "(999) 999-9999" }),
+        makeField("phone", "Text", { mask: "(999) 999-9999" }),
       ]),
     );
     const controller = useTextInput("phone", form);
@@ -54,7 +54,7 @@ describe("field-specific controllers", () => {
   it("formats and parses number and currency values", () => {
     const form = useForm(
       makeResource({ amount: 1234.5 }, [
-        makeField("amount", "TextInput", {
+        makeField("amount", "Text", {
           currency: { locale: "en-US", currency: "USD", decimals: 2 },
           parseNumbers: true,
         }),
@@ -134,7 +134,7 @@ describe("field-specific controllers", () => {
         [
           makeField("date", "DatePicker"),
           makeField("body", "RichText"),
-          makeField("code", "OtpInput", { length: 4 }),
+          makeField("code", "Otp", { length: 4 }),
           makeField("docs", "Link", {
             mode: "structured",
             withLabel: true,
@@ -172,11 +172,17 @@ describe("field-specific controllers", () => {
 
   it("dispatches canonical PascalCase components", () => {
     const form = useForm(
-      makeResource({ slug: "", tags: [] }, [
+      makeResource({ text: "", hidden: "", code: "", slug: "", tags: [] }, [
+        makeField("text", "Text"),
+        makeField("hidden", "Hidden"),
+        makeField("code", "Otp", { length: 4 }),
         makeField("slug", "Slug"),
         makeField("tags", "CheckboxGroup", { multiple: true }),
       ]),
     );
+    expect(useFormFieldController("text", form)).toHaveProperty("input");
+    expect(useFormFieldController("hidden", form)).toHaveProperty("input");
+    expect(useFormFieldController("code", form)).toHaveProperty("setDigit");
     expect(useFormFieldController("slug", form)).toHaveProperty("generate");
     expect(useFormFieldController("tags", form)).toHaveProperty("toggle");
   });

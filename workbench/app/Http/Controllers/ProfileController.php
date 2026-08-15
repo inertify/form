@@ -35,16 +35,47 @@ final class ProfileController
         $profile->forceFill([
             'name' => 'Ada Lovelace',
             'email' => 'ada@example.com',
+            'username' => 'ada-lovelace',
+            'age' => 36,
+            'verification_code' => '183742',
+            'source' => 'shadcn-vue-workbench',
             'is_employed' => true,
             'company' => 'Analytical Engines Ltd.',
             'skill' => 'php',
+            'work_mode' => 'hybrid',
+            'interests' => ['accessibility', 'testing'],
+            'notifications' => true,
+            'experience_years' => 8,
             'projects' => [
                 [
                     'title' => 'Headless forms',
                     'summary' => 'A schema-driven form with application-owned markup.',
                 ],
             ],
+            'available_from' => '2026-09-01',
+            'contact_time' => '10:30',
+            'accent_color' => '#7c3aed',
+            'website' => [
+                'url' => 'https://example.com/ada',
+                'label' => 'Ada on the web',
+                'target' => '_blank',
+            ],
+            'metadata' => [
+                'timezone' => 'Europe/Kyiv',
+                'language' => 'en',
+            ],
             'bio' => 'Mathematician, writer, and enthusiastic Laravel package tester.',
+            'message' => 'I would like to collaborate on accessible developer tools.',
+            'introduction' => '<p>I turn ambitious ideas into practical systems.</p>',
+            'content_blocks' => [
+                [
+                    'type' => 'quote',
+                    'data' => [
+                        'quote' => 'The Analytical Engine weaves algebraic patterns.',
+                        'credit' => 'Ada Lovelace',
+                    ],
+                ],
+            ],
         ]);
 
         $form = ProfileForm::make()

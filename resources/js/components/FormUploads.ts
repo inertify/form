@@ -4,7 +4,7 @@ import { useFormUploads } from "../useFormUploads";
 import type { UseFormApi } from "../types";
 
 export default defineComponent({
-  name: "HeadlessFormUploads",
+  name: "FormUploads",
   props: {
     form: {
       type: Object as PropType<UseFormApi>,
@@ -20,7 +20,7 @@ export default defineComponent({
 
     if (!form) {
       throw new Error(
-        "HeadlessFormUploads requires a `form` prop or form provider context.",
+        "FormUploads requires a `form` prop or form provider context.",
       );
     }
 

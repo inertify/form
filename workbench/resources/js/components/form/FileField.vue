@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import {
-  HeadlessFormUploads,
+  FormUploads,
   type FormField,
   type UseFormApi,
 } from "@inertify/form-vue";
 import Button from "@/components/ui/Button.vue";
 import FieldShell from "./FieldShell.vue";
+
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
   field: FormField;
@@ -39,7 +41,7 @@ function selected(
     :error="error"
     :required="required"
   >
-    <HeadlessFormUploads :form="form" :name="name">
+    <FormUploads :form="form" :name="name">
       <template #default="{ state, upload, remove, cancel, clear }">
         <input
           :id="inputId"
@@ -85,6 +87,6 @@ function selected(
           Clear all
         </Button>
       </template>
-    </HeadlessFormUploads>
+    </FormUploads>
   </FieldShell>
 </template>

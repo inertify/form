@@ -6,6 +6,11 @@ namespace Inertify\Form\Fields;
 
 class OtpInput extends Field
 {
+    public function getComponent(): string
+    {
+        return 'Otp';
+    }
+
     /** @param array<string, mixed> $data
      * @return list<mixed>
      */

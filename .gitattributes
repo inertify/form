@@ -13,6 +13,7 @@
 /phpstan.neon.dist  export-ignore
 /pint.json          export-ignore
 /workbench          export-ignore
+/docs               export-ignore
 /testbench.yaml     export-ignore
 /.phpunit.cache     export-ignore
 /build              export-ignore

@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { Head, Link } from "@inertiajs/vue3";
 import {
-  HeadlessForm,
-  HeadlessFormErrors,
-  HeadlessFormFields,
-  HeadlessFormSubmit,
-  HeadlessFormWizard,
+  Form,
+  FormErrors,
+  FormSubmit,
+  FormWizard,
   type FormResource,
 } from "@inertify/form-vue";
-import CheckboxField from "@/components/form/CheckboxField.vue";
-import FileField from "@/components/form/FileField.vue";
-import RemoteComboboxField from "@/components/form/RemoteComboboxField.vue";
-import RepeaterField from "@/components/form/RepeaterField.vue";
-import TextField from "@/components/form/TextField.vue";
+import { FormFields } from "@/components/form";
 import Button from "@/components/ui/Button.vue";
 import Card from "@/components/ui/Card.vue";
 
@@ -28,16 +23,17 @@ defineProps<{
 <template>
   <Head :title="mode === 'create' ? 'Create profile' : 'Edit profile'" />
 
-  <main class="mx-auto min-h-screen max-w-4xl px-4 py-10 sm:px-6">
+  <main class="mx-auto min-h-screen max-w-6xl px-4 py-10 sm:px-6">
     <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="mb-2 text-sm font-medium text-primary">Headless Inertify Form workbench</p>
+        <p class="mb-2 text-sm font-medium text-primary">Inertify Form × Shadcn Vue workbench</p>
         <h1 class="text-3xl font-semibold tracking-tight">
           {{ mode === "create" ? "Create a profile" : "Edit the bound profile" }}
         </h1>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Every visible element below belongs to the example app. The package supplies schema,
-          state, controllers, validation, uploads, and wizard behavior only.
+          Every package field is demonstrated with application-owned controls based on the
+          Shadcn Vue form catalog. Inertify supplies schema, state, validation, uploads, and
+          wizard behavior only.
         </p>
       </div>
 
@@ -67,10 +63,10 @@ defineProps<{
       {{ flash.success }}
     </div>
 
-    <HeadlessForm :form="form">
+    <Form :form="form">
       <template #default="{ form: formApi, submit, isDirty, processing }">
         <form class="space-y-5" novalidate @submit.prevent="submit()">
-          <HeadlessFormErrors :form="formApi">
+          <FormErrors :form="formApi">
             <template #default="{ entries, hasErrors }">
               <Card v-if="hasErrors" class="border-destructive/30">
                 <p class="font-medium text-destructive">Please review these fields:</p>
@@ -83,9 +79,9 @@ defineProps<{
                 </ul>
               </Card>
             </template>
-          </HeadlessFormErrors>
+          </FormErrors>
 
-          <HeadlessFormWizard :form="formApi">
+          <FormWizard :form="formApi">
             <template
               #default="{
                 steps,
@@ -100,7 +96,7 @@ defineProps<{
                 previous,
               }"
             >
-              <ol class="grid gap-2 sm:grid-cols-3" aria-label="Form progress">
+              <ol class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Form progress">
                 <li v-for="step in steps" :key="step.id">
                   <button
                     type="button"
@@ -129,39 +125,7 @@ defineProps<{
                 </header>
 
                 <div class="space-y-6">
-                  <HeadlessFormFields :form="formApi" :fields="current.fieldset.fields">
-                    <template #type-text-input="slot">
-                      <TextField v-bind="slot" />
-                    </template>
-
-                    <template #type-textarea="slot">
-                      <TextField v-bind="slot" multiline />
-                    </template>
-
-                    <template #type-checkbox="slot">
-                      <CheckboxField v-bind="slot" />
-                    </template>
-
-                    <template #type-combobox="slot">
-                      <RemoteComboboxField v-bind="slot" />
-                    </template>
-
-                    <template #type-repeater="slot">
-                      <RepeaterField v-bind="slot" />
-                    </template>
-
-                    <template #type-file="slot">
-                      <FileField v-bind="slot" />
-                    </template>
-
-                    <template #type-submit />
-
-                    <template #default="{ field }">
-                      <p class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                        Add app markup for <code>{{ field.component }}</code> using its type slot.
-                      </p>
-                    </template>
-                  </HeadlessFormFields>
+                  <FormFields :form="formApi" :fields="current.fieldset.fields" />
                 </div>
 
                 <footer class="mt-8 flex items-center justify-between gap-3 border-t pt-5">
@@ -173,23 +137,23 @@ defineProps<{
                     {{ labels.next }}
                   </Button>
 
-                  <HeadlessFormSubmit v-else :form="formApi">
+                  <FormSubmit v-else :form="formApi">
                     <template #default="{ processing: submitting, canSubmit }">
                       <Button type="submit" :disabled="!canSubmit || submitting">
                         {{ submitting ? "Saving…" : labels.submit }}
                       </Button>
                     </template>
-                  </HeadlessFormSubmit>
+                  </FormSubmit>
                 </footer>
               </Card>
             </template>
-          </HeadlessFormWizard>
+          </FormWizard>
 
           <p class="text-center text-xs text-muted-foreground">
             {{ isDirty ? "You have unsaved changes." : "Form values match their defaults." }}
           </p>
         </form>
       </template>
-    </HeadlessForm>
+    </Form>
   </main>
 </template>

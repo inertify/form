@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "inertify-form-docs",
+  "description": "Documentation for Inertify Form.",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "docus": "^5.12.3",
+    "nuxt": "^4.4.8"
+  },
+  "engines": {
+    "node": "^22.19.0 || ^24.11.0 || >=26.0.0"
+  }
+}

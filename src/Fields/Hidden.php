@@ -8,6 +8,6 @@ class Hidden extends Field
 {
     public function getComponent(): string
     {
-        return 'HiddenInput';
+        return 'Hidden';
     }
 }

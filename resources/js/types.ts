@@ -1,4 +1,5 @@
 import type {
+  Component,
   ComputedRef,
   Reactive,
   Ref,
@@ -190,6 +191,8 @@ export interface FormFieldset {
   clearWhenHidden?: boolean;
   [key: string]: unknown;
 }
+
+export type FormFieldsetIdSelector = string | readonly string[];
 
 /** A schema field resolved to one concrete root-data path. */
 export interface FormFieldInstance extends FormField {
@@ -421,6 +424,43 @@ export interface UseFormFieldApi {
   reset: () => void;
   clear: () => void;
   clearErrors: () => void;
+}
+
+export interface FormFieldSlotProps {
+  field: FormFieldInstance;
+  form: UseFormApi;
+  context: UseFormApi;
+  controller: UseFormFieldApi;
+  name: string;
+  value: unknown;
+  error: string | null;
+  errors: string[];
+  visible: boolean;
+  touched: boolean;
+  dirty: boolean;
+  disabled: boolean;
+  readonly: boolean;
+  required: boolean;
+  setValue: UseFormFieldApi["setValue"];
+  blur: UseFormFieldApi["blur"];
+  validate: UseFormFieldApi["validate"];
+  registerElement: UseFormFieldApi["registerElement"];
+}
+
+export interface FormFieldRendererDefinition {
+  component: Component | null;
+  props?: Readonly<Record<string, unknown>>;
+}
+
+export type FormFieldRenderer =
+  | Component
+  | FormFieldRendererDefinition
+  | null;
+
+export interface CreateFormRendererOptions {
+  renderers?: Readonly<Record<string, FormFieldRenderer>>;
+  fallback?: FormFieldRenderer;
+  name?: string;
 }
 
 export interface UseFormFieldsApi {

@@ -104,3 +104,28 @@ jobs:
 
       - name: Verify package contents
         run: npm run test:package
+
+  documentation:
+    runs-on: ubuntu-latest
+    name: Documentation
+
+    defaults:
+      run:
+        working-directory: docs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build documentation
+        run: npm run build

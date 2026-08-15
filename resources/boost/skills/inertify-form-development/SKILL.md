@@ -1,17 +1,17 @@
 ---
 name: inertify-form-development
 description: >
-  Build headless Laravel and Inertia Vue forms with enkot/inertify-form, including
+  Build headless Laravel and Inertia Vue forms with inertify/form, including
   schemas, binding, validation, choices, collections, editors, wizards, and uploads.
 license: MIT
 metadata:
   author: Enkot
-  package: enkot/inertify-form
+  package: inertify/form
 ---
 
 # Inertify Form
 
-Use this skill when a Laravel 12 or 13 application uses `enkot/inertify-form` with Inertia 3 and Vue 3. The package supplies form schema and behavior; the application renders every element and style. It is an independent clean-room package, not an Inertia UI distribution or compatibility layer for proprietary internals.
+Use this skill when a Laravel 12 or 13 application uses `inertify/form` with Inertia 3 and Vue 3. The package supplies form schema and behavior; the application renders every element and style. It is an independent clean-room package, not an Inertia UI distribution or compatibility layer for proprietary internals.
 
 ## Primary Goal
 
@@ -19,14 +19,14 @@ Create the smallest correct PHP schema, pass it directly as a request-aware Iner
 
 ## Workflow
 
-1. Require PHP 8.3+, Laravel 12/13, Inertia Laravel 3.3+, Vue 3.5+, and `@inertiajs/vue3` 3.6+. Install `enkot/inertify-form` and `@inertify/form-vue`. Publish optional config with `php artisan vendor:publish --tag=inertia-forms-config`; `inertify-form` and `inertify-form-config` are aliases.
+1. Require PHP 8.3+, Laravel 12/13, Inertia Laravel 3.3+, Vue 3.5+, and `@inertiajs/vue3` 3.6+. Install `inertify/form` and `@inertify/form-vue`. Publish optional config with `php artisan vendor:publish --tag=inertia-forms-config`; `inertify-form` and `inertify-form-config` are aliases.
 2. Generate `app/Forms/{Name}Form.php` with `php artisan make:form {Name}Form`, or extend `Inertify\Form\Form` directly.
 3. Return functional fields from `fields()`. Use `Fieldset` for semantic groups, `Repeater` or `Blocks` for nested values, and `WizardConfig` only for step behavior. Put layout and styling in Vue.
 4. Configure the action with `route()` or `url()` and a verb helper. For edit forms, call `bind($modelOrArray, except: [...])`; use `data([...])` only for explicit initial overrides.
 5. Pass the form instance directly to `Inertia::render()`. Never pre-serialize it: the owning property name and request drive query-backed choices and conditional serialization.
 6. Type the write parameter as `#[Inertify\Form\Validate] YourForm $form`. Use `$form->validated(files: false)` for mass assignment. Resolve tokenized uploads with `$form->upload()`, `$form->uploads()`, `request()->formUpload()`, or `request()->orderedFormUploads()`; native `storeWithForm()` files remain in `validated()` or Laravel's request file bag.
-7. Render through `HeadlessForm` and app-owned slots. Slot precedence is exactly `field-{qualified-path}` → `type-{kebab-component}` → `default` → deprecated `{qualified-path}-field` fallback.
-8. Use the slot's qualified `name` with field composables. Register the app-owned input element for first-error scrolling; do not expect the package to create a wrapper or input.
+7. Render through `Form` and the `FormFields` / `FormField` components returned by `createFormRenderer()`. Call the factory without options for app-owned slots, or pass a registry for reusable renderers. Slot precedence is exactly `field-{qualified-path}` → `type-{kebab-component}` → `default` → deprecated `{qualified-path}-field` fallback.
+8. Use the slot's qualified `name` with field composables. Register the app-owned input element for first-error scrolling; do not expect the package to create a wrapper or input. In applications with several form pages, call `createFormRenderer()` once with an app-owned component registry and reuse its generated components instead of repeating type slots.
 9. For choices, use inline `options()`, query-backed `options(Model::class|Builder)` for Inertia partial reloads, or `source()` for an application JSON endpoint. Set `options.propKey` in Vue when the owning Inertia prop is not named `form`.
 10. For asynchronous uploads, opt in with `Route::inertiaFormUploads()`. Defaults are `/_inertia-forms`, `inertia-forms.*`, `web`, and `auth`; keep application-specific authorization/rate limiting and review disk, lifetime, and byte/KiB limits.
 11. Schedule `form:cleanup-uploads`. Cleanup is restricted to package-owned directories, aborts expired pending S3 multipart sessions, retains completed direct uploads through token lifetime, and leaves individual failures retriable.
@@ -119,19 +119,21 @@ Render a reusable Vue type slot:
 ```vue
 <script setup lang="ts">
 import {
-  HeadlessForm,
-  HeadlessFormFields,
+  createFormRenderer,
+  Form,
   type FormResource,
 } from '@inertify/form-vue'
 
 defineProps<{ form: FormResource }>()
+
+const { FormFields } = createFormRenderer()
 </script>
 
 <template>
-  <HeadlessForm :form="form" v-slot="{ form: context, submit }">
+  <Form :form="form" v-slot="{ form: context, submit }">
     <form @submit.prevent="submit()">
-      <HeadlessFormFields :form="context">
-        <template #type-text-input="{ field, name, value, error, setValue, blur, registerElement }">
+      <FormFields :form="context">
+        <template #type-text="{ field, name, value, error, setValue, blur, registerElement }">
           <label :for="name">{{ field.label }}</label>
           <input
             :id="name"
@@ -142,13 +144,36 @@ defineProps<{ form: FormResource }>()
           />
           <p v-if="error">{{ error }}</p>
         </template>
-      </HeadlessFormFields>
+      </FormFields>
     </form>
-  </HeadlessForm>
+  </Form>
 </template>
 ```
 
-The slot's `name` is the qualified path. A shadcn-vue input may replace `<input>`, but it must remain an application-owned import such as `@/components/ui/input`.
+The slot's `name` is the qualified path. Calling `createFormRenderer()` without a registry is the slot-only API; the underlying field traversal components are internal. A shadcn-vue input may replace `<input>`, but it must remain an application-owned import such as `@/components/ui/input`.
+
+For repeated application layouts, create the app components once:
+
+```ts
+import { createFormRenderer } from '@inertify/form-vue'
+import CheckboxField from './CheckboxField.vue'
+import TextField from './TextField.vue'
+
+export const { FormField, FormFields } = createFormRenderer({
+  renderers: {
+    Text: TextField,
+    Textarea: { component: TextField, props: { multiline: true } },
+    Checkbox: CheckboxField,
+    Submit: null,
+  },
+})
+```
+
+Generated `FormFields` renders declared layout fields once; registered repeater and block renderers own their descendants. Use generated `FormField` with a qualified path such as `projects.0.title` when a custom layout must place a nested field explicitly.
+
+Use `FormFieldsets` to iterate selected server-declared groups in application-owned sections or cards. Its `only` and `except` props accept an exact fieldset ID string or readonly string array; `only` narrows first and `except` then removes matches, while results retain schema order. Selection does not reveal hidden fieldsets or fields—control that independently with `include-hidden`. Give selectable PHP fieldsets explicit, unique IDs with `Fieldset::id()`. For a fixed page layout, place `<FormFields fieldset="identity" />` inside each card instead.
+
+Registry keys are exact serialized `component` discriminators, not PHP class names: `TextInput`, `OtpInput`, and `Hidden` serialize as `Text`, `Otp`, and `Hidden`. Pages may use `<FormFields />` for schema order or `<FormField name="email" />` inside their own grid. Direct components and `{ component, props }` definitions receive the complete field slot payload; preset props cannot replace its behavioral keys, and `null` is intentionally renderless. Unknown fields remain renderless unless the app supplies `fallback` or an `unsupported` slot. Renderers that consume only part of the payload should set `inheritAttrs: false` to prevent unused controller values from reaching their root DOM. Keep `field-*` / `type-*` slots for local overrides; each factory snapshots an instance-local registry and does not globally register a UI layer.
 
 Choose the correct remote option mode:
 

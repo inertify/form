@@ -309,7 +309,7 @@ export function fieldEmptyValue(field: FormField | null): unknown {
   const component = componentToken(field.component);
 
   if (
-    ["textinput", "slug", "textarea", "hidden", "otp", "otpinput"].includes(
+    ["text", "slug", "textarea", "hidden", "otp"].includes(
       component,
     )
   ) {

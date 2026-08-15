@@ -23,3 +23,10 @@ updates:
       interval: "weekly"
     labels:
       - "dependencies"
+
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"

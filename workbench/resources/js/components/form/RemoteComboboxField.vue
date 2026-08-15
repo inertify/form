@@ -9,6 +9,8 @@ import Button from "@/components/ui/Button.vue";
 import Input from "@/components/ui/Input.vue";
 import FieldShell from "./FieldShell.vue";
 
+defineOptions({ inheritAttrs: false });
+
 const props = defineProps<{
   field: FormField;
   form: UseFormApi;

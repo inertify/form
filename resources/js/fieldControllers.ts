@@ -686,7 +686,7 @@ export function useFormFieldController(
     return useComposer(fieldOrPath, form);
   }
 
-  if (["otp", "otpinput"].includes(component)) {
+  if (component === "otp") {
     return useOtp(fieldOrPath, form);
   }
 
@@ -694,7 +694,7 @@ export function useFormFieldController(
     return useLink(fieldOrPath, form);
   }
 
-  if (["textinput", "textarea", "hidden", "colorpicker"].includes(component)) {
+  if (["text", "textarea", "hidden", "colorpicker"].includes(component)) {
     return useTextInput(fieldOrPath, form);
   }
 

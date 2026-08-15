@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Inertify\Form\Conditions\Condition;
 use Inertify\Form\Fields\Blocks;
 use Inertify\Form\Fields\BlockSet;
+use Inertify\Form\Fields\Checkbox;
 use Inertify\Form\Fields\CheckboxGroup;
 use Inertify\Form\Fields\ColorPicker;
 use Inertify\Form\Fields\Combobox;
@@ -44,7 +45,7 @@ it('serializes canonical field state and generated rules', function () {
         ->meta(['source' => 'profile']);
 
     expect($field->toArray())
-        ->component->toBe('TextInput')
+        ->component->toBe('Text')
         ->name->toBe('email_address')
         ->label->toBe('Email Address')
         ->inputType->toBe('email')
@@ -55,9 +56,18 @@ it('serializes canonical field state and generated rules', function () {
         ->and($field->getRules())->toBe(['required', 'string', 'email', 'min:5']);
 });
 
-it('keeps hidden as a component and rejects undocumented visual options', function () {
-    expect(Hidden::make('token')->getComponent())->toBe('HiddenInput')
-        ->and(fn () => TextInput::make('name')->variant('outline'))
+it('serializes semantic renderer discriminators independently of PHP class names', function () {
+    expect([
+        TextInput::make('name')->getComponent(),
+        Textarea::make('summary')->getComponent(),
+        Checkbox::make('terms')->getComponent(),
+        OtpInput::make('code')->getComponent(),
+        Hidden::make('token')->getComponent(),
+    ])->toBe(['Text', 'Textarea', 'Checkbox', 'Otp', 'Hidden']);
+});
+
+it('rejects undocumented visual options', function () {
+    expect(fn () => TextInput::make('name')->variant('outline'))
         ->toThrow(BadMethodCallException::class);
 });
 

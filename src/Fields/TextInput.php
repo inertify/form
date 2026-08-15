@@ -6,6 +6,11 @@ namespace Inertify\Form\Fields;
 
 class TextInput extends Field
 {
+    public function getComponent(): string
+    {
+        return static::class === self::class ? 'Text' : parent::getComponent();
+    }
+
     public function type(string $type): static
     {
         return $this->option('inputType', $type);

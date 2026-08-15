@@ -3,6 +3,10 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "paths": {
+      "@inertify/form-vue": ["./resources/js/index.ts"],
+      "@/*": ["./workbench/resources/js/*"]
+    },
     "lib": [
       "ES2022",
       "DOM",

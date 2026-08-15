@@ -3,7 +3,7 @@ import { tryUseFormContext } from "../context";
 import type { UseFormApi } from "../types";
 
 export default defineComponent({
-  name: "HeadlessFormErrors",
+  name: "FormErrors",
   props: {
     form: {
       type: Object as PropType<UseFormApi>,
@@ -15,7 +15,7 @@ export default defineComponent({
 
     if (!form) {
       throw new Error(
-        "HeadlessFormErrors requires a `form` prop or form provider context.",
+        "FormErrors requires a `form` prop or form provider context.",
       );
     }
 

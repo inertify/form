@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  HeadlessFormCollection,
+  FormCollection,
   type FormField,
   type UseFormApi,
 } from "@inertify/form-vue";
@@ -8,6 +8,8 @@ import Button from "@/components/ui/Button.vue";
 import Input from "@/components/ui/Input.vue";
 import Textarea from "@/components/ui/Textarea.vue";
 import FieldShell from "./FieldShell.vue";
+
+defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
   field: FormField;
@@ -46,7 +48,7 @@ function nestedError(index: number, key: string): string | null {
     :error="error"
     :required="required"
   >
-    <HeadlessFormCollection :form="form" :name="name">
+    <FormCollection :form="form" :name="name">
       <template #default="{ items, keys, append, update, remove, move }">
         <div class="space-y-3">
           <article
@@ -110,6 +112,6 @@ function nestedError(index: number, key: string): string | null {
           </Button>
         </div>
       </template>
-    </HeadlessFormCollection>
+    </FormCollection>
   </FieldShell>
 </template>

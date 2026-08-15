@@ -8,12 +8,14 @@ import {
 import { useFormFields } from "../useFormFields";
 import type {
   FormField,
+  FormFieldInstance,
   FormFieldset,
+  FormFieldSlotProps,
   UseFormApi,
 } from "../types";
 
 export default defineComponent({
-  name: "HeadlessFormFields",
+  name: "FormFieldsIterator",
   props: {
     form: {
       type: Object as PropType<UseFormApi>,
@@ -37,27 +39,33 @@ export default defineComponent({
 
     if (!resolvedForm) {
       throw new Error(
-        "HeadlessFormFields requires a `form` prop or form provider context.",
+        "FormFieldsIterator requires a `form` prop or form provider context.",
       );
     }
 
     const form = resolvedForm;
     const fieldsApi = useFormFields(form);
 
-    function candidates(): FormField[] {
+    function candidates(): FormFieldInstance[] {
       if (props.fields) {
         return props.fields.flatMap((field) => {
           if ("path" in field && typeof field.path === "string") {
-            return [field];
+            const resolved = form.resolveField(field.path);
+
+            return resolved ? [resolved] : [];
           }
 
           const instances = form.fields.value.filter(
             (candidate) => candidate.schemaField === field,
           );
 
-          return instances.length > 0
-            ? instances
-            : [form.resolveField(fieldPath(field)) ?? field];
+          if (instances.length > 0) {
+            return instances;
+          }
+
+          const resolved = form.resolveField(fieldPath(field));
+
+          return resolved ? [resolved] : [];
         });
       }
 
@@ -82,7 +90,7 @@ export default defineComponent({
           const name = fieldPath(field);
           const controller = fieldsApi.controller(field);
           const type = normalizedSlotToken(field.component);
-          const payload = {
+          const payload: FormFieldSlotProps = {
             field,
             form,
             context: form,

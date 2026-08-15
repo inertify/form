@@ -24,7 +24,7 @@ export function useFormContext<
 
   if (!context) {
     throw new Error(
-      "useFormContext must be used inside <Form>, <HeadlessForm>, or <HeadlessFormProvider>.",
+      "useFormContext must be used inside <Form>, <Wizard>, or <FormProvider>.",
     );
   }
 

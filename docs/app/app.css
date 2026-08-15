@@ -1,0 +1,16 @@
+@theme static {
+  --font-sans: "Instrument Sans", sans-serif;
+  --color-laravel: #ff2d20;
+
+  --color-inertify-50: #f5fdf7;
+  --color-inertify-100: #eafbf0;
+  --color-inertify-200: #d5f7e1;
+  --color-inertify-300: #aeefc7;
+  --color-inertify-400: #4ade93;
+  --color-inertify-500: #10a66a;
+  --color-inertify-600: #0ea35f;
+  --color-inertify-700: #078550;
+  --color-inertify-800: #056940;
+  --color-inertify-900: #055132;
+  --color-inertify-950: #053c25;
+}

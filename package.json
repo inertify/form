@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@inertify/form-vue",
   "version": "0.1.0",
-  "description": "Headless Vue composables and renderless components for enkot/inertify-form.",
+  "description": "Headless Vue composables and renderless components for inertify/form.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

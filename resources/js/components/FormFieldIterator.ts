@@ -1,10 +1,10 @@
 import { defineComponent, h, type PropType } from "vue";
 import { tryUseFormContext } from "../context";
-import HeadlessFormFields from "./HeadlessFormFields";
+import FormFieldsIterator from "./FormFieldsIterator";
 import type { FormField, UseFormApi } from "../types";
 
 export default defineComponent({
-  name: "HeadlessFormField",
+  name: "FormFieldIterator",
   props: {
     form: {
       type: Object as PropType<UseFormApi>,
@@ -24,7 +24,7 @@ export default defineComponent({
 
     if (!form) {
       throw new Error(
-        "HeadlessFormField requires a `form` prop or form provider context.",
+        "FormFieldIterator requires a `form` prop or form provider context.",
       );
     }
 
@@ -39,7 +39,7 @@ export default defineComponent({
       }
 
       return h(
-        HeadlessFormFields,
+        FormFieldsIterator,
         {
           form,
           fields: [field],
