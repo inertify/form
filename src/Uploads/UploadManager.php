@@ -505,12 +505,14 @@ final class UploadManager
             );
             $this->writeDirectMetadata($metadata);
         } catch (Throwable $exception) {
-            if (($metadata['multipart_driver'] ?? null) === 's3') {
+            $providerUploadId = $metadata['provider_upload_id'] ?? null;
+
+            if (($metadata['multipart_driver'] ?? null) === 's3' && $providerUploadId !== null) {
                 try {
                     $this->s3Multipart->abort(
                         $directDisk,
                         $path,
-                        (string) $metadata['provider_upload_id'],
+                        (string) $providerUploadId,
                     );
                 } catch (Throwable) {
                     // Preserve the failure that prevented issuing a usable token.

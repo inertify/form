@@ -94,7 +94,7 @@ trait HasVisibility
             $this->visibility instanceof ConditionGroup => $this->visibility->matches($data, $row),
             $this->visibility instanceof Closure => (bool) Value::resolve($this->visibility, compact('data', 'row')),
             $this->visibility === null => true,
-            default => $this->visibility,
+            default => (bool) $this->visibility,
         };
     }
 
