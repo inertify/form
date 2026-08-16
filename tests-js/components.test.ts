@@ -101,15 +101,90 @@ describe("renderless form components", () => {
     ]);
   });
 
-  it("renders no package-owned element without a consumer slot", () => {
+  it("renders no package-owned element from FormProvider", () => {
+    const wrapper = mount(FormProvider, {
+      props: {
+        form: makeResource({ name: "Ada" }, [makeField("name")]),
+      },
+      slots: {
+        default: () => h("output", "provided"),
+      },
+    });
+
+    expect(wrapper.find("*").element.tagName).toBe("OUTPUT");
+    expect(wrapper.html()).not.toContain("<form");
+  });
+
+  it("renders the native form element from Form and Wizard", () => {
+    for (const component of [Form, Wizard]) {
+      const wrapper = mount(component, {
+        props: {
+          form: makeResource({ name: "Ada" }, [makeField("name")]),
+        },
+        attrs: { class: "space-y-4" },
+        slots: { default: () => h("output", "content") },
+      });
+      const form = wrapper.get("form");
+
+      expect(form.attributes("id")).toMatch(/^inertify-form-/);
+      expect(form.attributes("action")).toBe("/submit");
+      expect(form.attributes("method")).toBe("post");
+      expect(form.attributes("novalidate")).toBeDefined();
+      expect(form.classes()).toContain("space-y-4");
+      expect(form.get("output").text()).toBe("content");
+      expect(form.find('input[name="_method"]').exists()).toBe(false);
+    }
+  });
+
+  it("lets consumer attributes override the rendered form element", () => {
+    const wrapper = mount(Form, {
+      props: { form: makeResource({ name: "Ada" }, [makeField("name")]) },
+      attrs: { id: "profile", action: "/profiles/1" },
+    });
+    const form = wrapper.get("form");
+
+    expect(form.attributes("id")).toBe("profile");
+    expect(form.attributes("action")).toBe("/profiles/1");
+  });
+
+  it("spoofs non-native methods with a hidden field", () => {
+    const wrapper = mount(Form, {
+      props: {
+        form: makeResource({ name: "Ada" }, [makeField("name")], {
+          method: "PUT",
+        }),
+      },
+    });
+    const form = wrapper.get("form");
+
+    expect(form.attributes("method")).toBe("post");
+    expect(form.get('input[name="_method"]').attributes("value")).toBe("PUT");
+  });
+
+  it("submits the form element without a native navigation", async () => {
     const wrapper = mount(Form, {
       props: {
         form: makeResource({ name: "Ada" }, [makeField("name")]),
       },
+      slots: {
+        default: () => h("button", { type: "submit" }, "Save"),
+      },
     });
 
-    expect(wrapper.find("*").exists()).toBe(false);
-    expect(wrapper.html()).not.toContain("<form");
+    await wrapper.get("form").trigger("submit");
+
+    expect(wrapper.emitted("before")).toHaveLength(1);
+    expect(wrapper.emitted("success")).toHaveLength(1);
+  });
+
+  it("exposes the rendered form element", () => {
+    const wrapper = mount(Form, {
+      props: { form: makeResource({ name: "Ada" }, [makeField("name")]) },
+    });
+
+    expect(
+      (wrapper.vm as unknown as { element: HTMLFormElement | null }).element,
+    ).toBe(wrapper.get("form").element);
   });
 
   it("provides the upstream-compatible root slot payload", () => {

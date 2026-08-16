@@ -3,7 +3,7 @@ import { renderToString } from "vue/server-renderer";
 import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import Form from "../resources/js/components/Form";
-import { createFormRenderer } from "../resources/js/components";
+import { createFormRenderer, FormProvider } from "../resources/js/components";
 import type { FormFieldRendererDefinition } from "../resources/js/types";
 import { makeField, makeResource } from "./fixtures";
 
@@ -395,7 +395,7 @@ describe("createFormRenderer", () => {
 
   it("renders nothing for an unknown field without an application fallback", () => {
     const { FormFields } = createFormRenderer();
-    const wrapper = mount(Form, {
+    const wrapper = mount(FormProvider, {
       props: {
         form: makeResource(
           { custom: "value" },

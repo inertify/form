@@ -1,3 +1,3 @@
 import { createFormComponent } from "./createFormComponent";
 
-export default createFormComponent("Form");
+export default createFormComponent("Form", { element: true });

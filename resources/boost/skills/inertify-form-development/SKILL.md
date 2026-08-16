@@ -25,7 +25,7 @@ Create the smallest correct PHP schema, pass it directly as a request-aware Iner
 4. Configure the action with `route()` or `url()` and a verb helper. For edit forms, call `bind($modelOrArray, except: [...])`; use `data([...])` only for explicit initial overrides.
 5. Pass the form instance directly to `Inertia::render()`. Never pre-serialize it: the owning property name and request drive query-backed choices and conditional serialization.
 6. Type the write parameter as `#[Inertify\Form\Validate] YourForm $form`. Use `$form->validated(files: false)` for mass assignment. Resolve tokenized uploads with `$form->upload()`, `$form->uploads()`, `request()->formUpload()`, or `request()->orderedFormUploads()`; native `storeWithForm()` files remain in `validated()` or Laravel's request file bag.
-7. Render through `Form` and the `FormFields` / `FormField` components returned by `createFormRenderer()`. Call the factory without options for app-owned slots, or pass a registry for reusable renderers. Slot precedence is exactly `field-{qualified-path}` → `type-{kebab-component}` → `default` → deprecated `{qualified-path}-field` fallback.
+7. Render through `Form` and the `FormFields` / `FormField` components returned by `createFormRenderer()`. `Form` renders the page's `<form>` element — `id`, `action`, `method`, `novalidate`, method spoofing, and Inertia submission are wired for you, so place fields and a `type="submit"` button directly inside it and never nest another `<form>`. Use `FormProvider` for the same engine without an element. Call the factory without options for app-owned slots, or pass a registry for reusable renderers. Slot precedence is exactly `field-{qualified-path}` → `type-{kebab-component}` → `default` → deprecated `{qualified-path}-field` fallback.
 8. Use the slot's qualified `name` with field composables. Register the app-owned input element for first-error scrolling; do not expect the package to create a wrapper or input. In applications with several form pages, call `createFormRenderer()` once with an app-owned component registry and reuse its generated components instead of repeating type slots.
 9. For choices, use inline `options()`, query-backed `options(Model::class|Builder)` for Inertia partial reloads, or `source()` for an application JSON endpoint. Set `options.propKey` in Vue when the owning Inertia prop is not named `form`.
 10. For asynchronous uploads, opt in with `Route::inertiaFormUploads()`. Defaults are `/_inertia-forms`, `inertia-forms.*`, `web`, and `auth`; keep application-specific authorization/rate limiting and review disk, lifetime, and byte/KiB limits.
@@ -130,22 +130,22 @@ const { FormFields } = createFormRenderer()
 </script>
 
 <template>
-  <Form :form="form" v-slot="{ form: context, submit }">
-    <form @submit.prevent="submit()">
-      <FormFields :form="context">
-        <template #type-text="{ field, name, value, error, setValue, blur, registerElement }">
-          <label :for="name">{{ field.label }}</label>
-          <input
-            :id="name"
-            :ref="registerElement"
-            :value="value"
-            @input="setValue(($event.currentTarget as HTMLInputElement).value)"
-            @blur="blur"
-          />
-          <p v-if="error">{{ error }}</p>
-        </template>
-      </FormFields>
-    </form>
+  <Form :form="form" v-slot="{ form: context, processing }">
+    <FormFields :form="context">
+      <template #type-text="{ field, name, value, error, setValue, blur, registerElement }">
+        <label :for="name">{{ field.label }}</label>
+        <input
+          :id="name"
+          :ref="registerElement"
+          :value="value"
+          @input="setValue(($event.currentTarget as HTMLInputElement).value)"
+          @blur="blur"
+        />
+        <p v-if="error">{{ error }}</p>
+      </template>
+    </FormFields>
+
+    <button type="submit" :disabled="processing">Save</button>
   </Form>
 </template>
 ```
@@ -236,7 +236,8 @@ Use `RichTextContent::from($html)->replaceImagesUsing(...)->toHtml()` when durab
 
 ## Anti-patterns
 
-- Do not expect package-owned markup, CSS, Tailwind classes, shadcn components, icons, or editor UI.
+- Do not expect package-owned markup, CSS, Tailwind classes, shadcn components, icons, or editor UI beyond the unstyled `<form>` element rendered by `Form` and `Wizard`.
+- Do not nest an application `<form>` inside `Form` or `Wizard`, and do not re-add `@submit.prevent="submit()"` to them. Nested forms are invalid HTML and lose the submit handler; use `FormProvider` when the element must live elsewhere.
 - Do not add presentation-only schema modifiers. Layout, variants, orientation, icons, and classes belong in application Vue components.
 - Do not pre-serialize a form or move its data into a separate prop; doing so loses request/property context and can desynchronize authorization.
 - Do not override the slot order or put deprecated `{name}-field` compatibility slots ahead of `field-{path}`, `type-{component}`, or `default`.

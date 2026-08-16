@@ -1,9 +1,18 @@
-import { defineComponent, toRef, type PropType } from "vue";
+import { defineComponent, ref, toRef, type PropType } from "vue";
 import { provideFormContext } from "../context";
 import { useForm } from "../useForm";
+import { renderFormElement } from "./formElement";
 import type { FormResource, UseFormOptions } from "../types";
 
-export function createFormComponent(name: string) {
+export interface CreateFormComponentOptions {
+  /** Render a native form element around the slot content. */
+  element?: boolean;
+}
+
+export function createFormComponent(
+  name: string,
+  { element = false }: CreateFormComponentOptions = {},
+) {
   return defineComponent({
     name,
     emits: [
@@ -63,11 +72,12 @@ export function createFormComponent(name: string) {
         },
       };
       const api = useForm(toRef(props, "form"), options);
+      const formElement = ref<HTMLFormElement | null>(null);
       provideFormContext(api);
-      expose(api);
+      expose(element ? { ...api, element: formElement } : api);
 
-      return () =>
-        slots.default?.({
+      return () => {
+        const content = slots.default?.({
           form: api,
           formId: api.formId.value,
           data: api.data.value,
@@ -85,6 +95,9 @@ export function createFormComponent(name: string) {
           transform: api.transform,
           clearErrors: api.clearErrors,
         }) ?? null;
+
+        return element ? renderFormElement(api, formElement, content) : content;
+      };
     },
   });
 }

@@ -5,7 +5,7 @@
 <p align="center">
     <a href="https://packagist.org/packages/inertify/form"><img src="https://img.shields.io/packagist/v/inertify/form.svg?style=flat-square" alt="Packagist"></a>
     <a href="https://packagist.org/packages/inertify/form"><img src="https://img.shields.io/packagist/php-v/inertify/form.svg?style=flat-square" alt="Supported PHP versions"></a>
-    <a href="https://github.com/enkot/inertify-form/actions"><img src="https://img.shields.io/github/actions/workflow/status/enkot/inertify-form/tests.yml?branch=main&label=tests&style=flat-square" alt="Test status"></a>
+    <a href="https://github.com/inertify/form/actions"><img src="https://img.shields.io/github/actions/workflow/status/inertify/form/tests.yml?branch=main&label=tests&style=flat-square" alt="Test status"></a>
     <a href="https://packagist.org/packages/inertify/form"><img src="https://img.shields.io/packagist/dt/inertify/form.svg?style=flat-square" alt="Total downloads"></a>
 </p>
 
@@ -192,7 +192,9 @@ Authorization may be declared on the form, a fieldset, or a field with `authoriz
 
 ## Render your own Vue markup
 
-`Form` creates the form engine, provides it to descendants, and returns only slot content. Create the application field components with `createFormRenderer()`. Its generated `FormFields` resolves slots in this exact order:
+`Form` creates the form engine, provides it to descendants, and renders the native `<form>` element around your slot content. It sets `id` from the resolved form ID, `action` and `method` from the serialized resource, `novalidate` because validation is server-driven, and a submit handler that cancels the native navigation and submits through Inertia with the originating submitter. Attributes you pass through—including `id`, `action`, `method`, and `novalidate`—override those defaults, and `FormProvider` is the renderless alternative when the element belongs elsewhere. Do not nest your own `<form>` inside it.
+
+Create the application field components with `createFormRenderer()`. Its generated `FormFields` resolves slots in this exact order:
 
 1. `field-{path}` slot
 2. `type-{component}` slot, normalized to kebab case
@@ -216,42 +218,38 @@ const { FormFields } = createFormRenderer()
 </script>
 
 <template>
-  <Form :form="form">
-    <template #default="{ form: context, submit, processing }">
-      <form @submit.prevent="submit()">
-        <FormFields :form="context">
-          <template
-            #type-text="{
-              field,
-              name,
-              value,
-              error,
-              disabled,
-              readonly,
-              setValue,
-              blur,
-              registerElement,
-            }"
-          >
-            <label :for="`field-${name}`">{{ field.label }}</label>
-            <Input
-              :id="`field-${name}`"
-              :ref="registerElement"
-              :name="name"
-              :model-value="value"
-              :placeholder="field.placeholder"
-              :disabled="disabled"
-              :readonly="readonly"
-              @update:model-value="setValue"
-              @blur="blur"
-            />
-            <p v-if="error" role="alert">{{ error }}</p>
-          </template>
-        </FormFields>
+  <Form :form="form" v-slot="{ form: context, processing }">
+    <FormFields :form="context">
+      <template
+        #type-text="{
+          field,
+          name,
+          value,
+          error,
+          disabled,
+          readonly,
+          setValue,
+          blur,
+          registerElement,
+        }"
+      >
+        <label :for="`field-${name}`">{{ field.label }}</label>
+        <Input
+          :id="`field-${name}`"
+          :ref="registerElement"
+          :name="name"
+          :model-value="value"
+          :placeholder="field.placeholder"
+          :disabled="disabled"
+          :readonly="readonly"
+          @update:model-value="setValue"
+          @blur="blur"
+        />
+        <p v-if="error" role="alert">{{ error }}</p>
+      </template>
+    </FormFields>
 
-        <button type="submit" :disabled="processing">Save</button>
-      </form>
-    </template>
+    <button type="submit" :disabled="processing">Save</button>
   </Form>
 </template>
 ```
@@ -314,7 +312,7 @@ Or place registered fields explicitly in any application layout:
 
 The generated components preserve validation, conditional visibility, uploads, qualified collection paths, and first-error registration. They also forward `field-*`, `type-*`, `before-*`, `after-*`, and default slots for page-specific overrides. The application still owns every registered renderer and every emitted element. See the workbench's [`form/index.ts`](workbench/resources/js/components/form/index.ts) for a complete shadcn-vue registration.
 
-Use `FormProvider` when only context provision is needed, `FormFieldsets` for fieldset-level rendering, `FormWizard` for wizard navigation, `FormCollection` for stable collection identities and move operations, and `FormUploads` for upload state. These components and the components returned by `createFormRenderer()` return consumer slot nodes or `null`; none adds a package-owned DOM element.
+Use `FormProvider` when only context provision is needed, `FormFieldsets` for fieldset-level rendering, `FormWizard` for wizard navigation, `FormCollection` for stable collection identities and move operations, and `FormUploads` for upload state. Apart from the `<form>` element rendered by `Form` and `Wizard`, these components and the components returned by `createFormRenderer()` return consumer slot nodes or `null`; none adds a package-owned DOM element.
 
 `FormFieldsets` selects server-declared groups by exact resolved ID. Its `only` and `except` props each accept one string or a readonly string array; `only` narrows first, then `except` removes matches, so exclusion wins. Selection preserves schema order and is independent of visibility—use `include-hidden` separately when hidden fieldsets or fields should be included. Give selectable fieldsets stable, unique PHP IDs with `Fieldset::id()` instead of relying on position-derived fallback IDs.
 
@@ -625,11 +623,11 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Documentation site
 
-The Docus site source lives in the [GitHub `docs` directory](https://github.com/enkot/inertify-form/tree/main/docs). From the repository root, install and run it with `npm install --prefix docs` and `npm run dev --prefix docs`.
+The Docus site source lives in the [GitHub `docs` directory](https://github.com/inertify/form/tree/main/docs). From the repository root, install and run it with `npm install --prefix docs` and `npm run dev --prefix docs`.
 
 ## Security
 
-Report security issues through the process in the [GitHub security policy](https://github.com/enkot/inertify-form/blob/main/.github/SECURITY.md).
+Report security issues through the process in the [GitHub security policy](https://github.com/inertify/form/blob/main/.github/SECURITY.md).
 
 ## License
 

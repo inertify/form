@@ -253,328 +253,328 @@ function canAddSet(
         :error="error"
         :required="required"
     >
-        <FormCollection :form="form" :name="name">
-            <template
-                #default="{
-                    items,
-                    keys,
-                    canAppend,
-                    appendBlock,
-                    update,
-                    remove,
-                    move,
-                }"
-            >
-                <div class="space-y-4">
-                    <article
-                        v-for="(item, index) in items"
-                        :key="keys[index]"
-                        class="space-y-4 rounded-lg border bg-muted/30 p-4"
+        <FormCollection
+            :form="form"
+            :name="name"
+            v-slot="{
+                items,
+                keys,
+                canAppend,
+                appendBlock,
+                update,
+                remove,
+                move,
+            }"
+        >
+            <div class="space-y-4">
+                <article
+                    v-for="(item, index) in items"
+                    :key="keys[index]"
+                    class="space-y-4 rounded-lg border bg-muted/30 p-4"
+                >
+                    <header
+                        class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
                     >
-                        <header
-                            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-                        >
-                            <div>
-                                <strong class="text-sm">
-                                    {{
-                                        setLabel(
-                                            findSet(item),
-                                            blockType(item) ||
-                                                `Block ${index + 1}`,
-                                        )
-                                    }}
-                                </strong>
-                                <p
-                                    v-if="findSet(item)?.description"
-                                    class="mt-1 text-sm text-muted-foreground"
-                                >
-                                    {{ findSet(item)?.description }}
-                                </p>
-                            </div>
-                            <div class="flex gap-1">
-                                <Button
-                                    variant="ghost"
-                                    :disabled="isLocked() || index === 0"
-                                    :aria-label="`Move block ${index + 1} up`"
-                                    @click="move(index, index - 1)"
-                                >
-                                    ↑
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    :disabled="
-                                        isLocked() || index === items.length - 1
-                                    "
-                                    :aria-label="`Move block ${index + 1} down`"
-                                    @click="move(index, index + 1)"
-                                >
-                                    ↓
-                                </Button>
-                                <Button
-                                    variant="destructive"
-                                    :disabled="
-                                        isLocked() ||
-                                        items.length <= minimumItems()
-                                    "
-                                    :aria-label="`Remove block ${index + 1}`"
-                                    @click="remove(index)"
-                                >
-                                    Remove
-                                </Button>
-                            </div>
-                        </header>
-
-                        <div v-if="findSet(item)" class="space-y-4">
-                            <template
-                                v-for="nestedField in schemaFields(
-                                    findSet(item),
-                                )"
-                                :key="fieldName(nestedField)"
+                        <div>
+                            <strong class="text-sm">
+                                {{
+                                    setLabel(
+                                        findSet(item),
+                                        blockType(item) ||
+                                            `Block ${index + 1}`,
+                                    )
+                                }}
+                            </strong>
+                            <p
+                                v-if="findSet(item)?.description"
+                                class="mt-1 text-sm text-muted-foreground"
                             >
-                                <div
-                                    v-if="nestedField.component === 'Checkbox'"
-                                    class="space-y-1"
+                                {{ findSet(item)?.description }}
+                            </p>
+                        </div>
+                        <div class="flex gap-1">
+                            <Button
+                                variant="ghost"
+                                :disabled="isLocked() || index === 0"
+                                :aria-label="`Move block ${index + 1} up`"
+                                @click="move(index, index - 1)"
+                            >
+                                ↑
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                :disabled="
+                                    isLocked() || index === items.length - 1
+                                "
+                                :aria-label="`Move block ${index + 1} down`"
+                                @click="move(index, index + 1)"
+                            >
+                                ↓
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                :disabled="
+                                    isLocked() ||
+                                    items.length <= minimumItems()
+                                "
+                                :aria-label="`Remove block ${index + 1}`"
+                                @click="remove(index)"
+                            >
+                                Remove
+                            </Button>
+                        </div>
+                    </header>
+
+                    <div v-if="findSet(item)" class="space-y-4">
+                        <template
+                            v-for="nestedField in schemaFields(
+                                findSet(item),
+                            )"
+                            :key="fieldName(nestedField)"
+                        >
+                            <div
+                                v-if="nestedField.component === 'Checkbox'"
+                                class="space-y-1"
+                            >
+                                <label
+                                    :for="nestedId(index, nestedField)"
+                                    class="flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-3 text-sm"
                                 >
-                                    <label
-                                        :for="nestedId(index, nestedField)"
-                                        class="flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-3 text-sm"
-                                    >
-                                        <input
-                                            :id="nestedId(index, nestedField)"
-                                            type="checkbox"
-                                            :name="
-                                                nestedPath(index, nestedField)
-                                            "
-                                            :checked="
-                                                checkboxValue(item, nestedField)
-                                            "
-                                            :disabled="isLocked(nestedField)"
-                                            class="mt-0.5 size-4 accent-primary"
-                                            v-bind="
-                                                nestedField.dataAttributes ?? {}
-                                            "
-                                            @change="
-                                                updateCheckbox(
-                                                    update,
-                                                    item,
-                                                    index,
-                                                    nestedField,
-                                                    $event,
-                                                )
-                                            "
-                                        />
-                                        <span>
-                                            <span class="block font-medium">
-                                                {{ nestedField.label }}
-                                                <span
-                                                    v-if="
-                                                        nestedRequired(
-                                                            nestedField,
-                                                        )
-                                                    "
-                                                    class="text-destructive"
-                                                    aria-hidden="true"
-                                                    >*</span
-                                                >
-                                            </span>
+                                    <input
+                                        :id="nestedId(index, nestedField)"
+                                        type="checkbox"
+                                        :name="
+                                            nestedPath(index, nestedField)
+                                        "
+                                        :checked="
+                                            checkboxValue(item, nestedField)
+                                        "
+                                        :disabled="isLocked(nestedField)"
+                                        class="mt-0.5 size-4 accent-primary"
+                                        v-bind="
+                                            nestedField.dataAttributes ?? {}
+                                        "
+                                        @change="
+                                            updateCheckbox(
+                                                update,
+                                                item,
+                                                index,
+                                                nestedField,
+                                                $event,
+                                            )
+                                        "
+                                    />
+                                    <span>
+                                        <span class="block font-medium">
+                                            {{ nestedField.label }}
                                             <span
-                                                v-if="nestedField.help"
-                                                class="mt-1 block text-muted-foreground"
+                                                v-if="
+                                                    nestedRequired(
+                                                        nestedField,
+                                                    )
+                                                "
+                                                class="text-destructive"
+                                                aria-hidden="true"
+                                                >*</span
                                             >
-                                                {{ nestedField.help }}
-                                            </span>
                                         </span>
-                                    </label>
-                                    <p
-                                        v-if="nestedError(index, nestedField)"
-                                        class="text-sm text-destructive"
-                                        role="alert"
-                                    >
-                                        {{ nestedError(index, nestedField) }}
-                                    </p>
-                                </div>
-
-                                <div
-                                    v-else-if="
-                                        nestedField.component === 'Textarea'
-                                    "
-                                    class="space-y-2"
-                                >
-                                    <label
-                                        :for="nestedId(index, nestedField)"
-                                        class="text-sm font-medium"
-                                    >
-                                        {{ nestedField.label }}
                                         <span
-                                            v-if="nestedRequired(nestedField)"
-                                            class="text-destructive"
-                                            aria-hidden="true"
-                                            >*</span
+                                            v-if="nestedField.help"
+                                            class="mt-1 block text-muted-foreground"
                                         >
-                                    </label>
-                                    <Textarea
-                                        :id="nestedId(index, nestedField)"
-                                        :model-value="
-                                            nestedValue(item, nestedField)
-                                        "
-                                        :name="nestedPath(index, nestedField)"
-                                        :placeholder="
-                                            nestedField.placeholder ?? undefined
-                                        "
-                                        :disabled="isLocked(nestedField)"
-                                        :readonly="
-                                            readonly ||
-                                            Boolean(nestedField.readonly)
-                                        "
-                                        :aria-invalid="
-                                            Boolean(
-                                                nestedError(index, nestedField),
-                                            )
-                                        "
-                                        v-bind="
-                                            nestedField.dataAttributes ?? {}
-                                        "
-                                        @update:model-value="
-                                            updateNested(
-                                                update,
-                                                item,
-                                                index,
-                                                nestedField,
-                                                $event,
-                                            )
-                                        "
-                                    />
-                                    <p
-                                        v-if="nestedError(index, nestedField)"
-                                        class="text-sm text-destructive"
-                                        role="alert"
-                                    >
-                                        {{ nestedError(index, nestedField) }}
-                                    </p>
-                                    <p
-                                        v-else-if="nestedField.help"
-                                        class="text-sm text-muted-foreground"
-                                    >
-                                        {{ nestedField.help }}
-                                    </p>
-                                </div>
-
-                                <div
-                                    v-else-if="
-                                        nestedField.component === 'Text'
-                                    "
-                                    class="space-y-2"
-                                >
-                                    <label
-                                        :for="nestedId(index, nestedField)"
-                                        class="text-sm font-medium"
-                                    >
-                                        {{ nestedField.label }}
-                                        <span
-                                            v-if="nestedRequired(nestedField)"
-                                            class="text-destructive"
-                                            aria-hidden="true"
-                                            >*</span
-                                        >
-                                    </label>
-                                    <Input
-                                        :id="nestedId(index, nestedField)"
-                                        :model-value="
-                                            nestedValue(item, nestedField)
-                                        "
-                                        :name="nestedPath(index, nestedField)"
-                                        :type="
-                                            String(
-                                                nestedField.inputType ?? 'text',
-                                            )
-                                        "
-                                        :placeholder="
-                                            nestedField.placeholder ?? undefined
-                                        "
-                                        :disabled="isLocked(nestedField)"
-                                        :readonly="
-                                            readonly ||
-                                            Boolean(nestedField.readonly)
-                                        "
-                                        :aria-invalid="
-                                            Boolean(
-                                                nestedError(index, nestedField),
-                                            )
-                                        "
-                                        v-bind="
-                                            nestedField.dataAttributes ?? {}
-                                        "
-                                        @update:model-value="
-                                            updateNested(
-                                                update,
-                                                item,
-                                                index,
-                                                nestedField,
-                                                $event,
-                                            )
-                                        "
-                                    />
-                                    <p
-                                        v-if="nestedError(index, nestedField)"
-                                        class="text-sm text-destructive"
-                                        role="alert"
-                                    >
-                                        {{ nestedError(index, nestedField) }}
-                                    </p>
-                                    <p
-                                        v-else-if="nestedField.help"
-                                        class="text-sm text-muted-foreground"
-                                    >
-                                        {{ nestedField.help }}
-                                    </p>
-                                </div>
-
+                                            {{ nestedField.help }}
+                                        </span>
+                                    </span>
+                                </label>
                                 <p
-                                    v-else-if="
-                                        !supportedComponents.has(
-                                            nestedField.component,
+                                    v-if="nestedError(index, nestedField)"
+                                    class="text-sm text-destructive"
+                                    role="alert"
+                                >
+                                    {{ nestedError(index, nestedField) }}
+                                </p>
+                            </div>
+
+                            <div
+                                v-else-if="
+                                    nestedField.component === 'Textarea'
+                                "
+                                class="space-y-2"
+                            >
+                                <label
+                                    :for="nestedId(index, nestedField)"
+                                    class="text-sm font-medium"
+                                >
+                                    {{ nestedField.label }}
+                                    <span
+                                        v-if="nestedRequired(nestedField)"
+                                        class="text-destructive"
+                                        aria-hidden="true"
+                                        >*</span
+                                    >
+                                </label>
+                                <Textarea
+                                    :id="nestedId(index, nestedField)"
+                                    :model-value="
+                                        nestedValue(item, nestedField)
+                                    "
+                                    :name="nestedPath(index, nestedField)"
+                                    :placeholder="
+                                        nestedField.placeholder ?? undefined
+                                    "
+                                    :disabled="isLocked(nestedField)"
+                                    :readonly="
+                                        readonly ||
+                                        Boolean(nestedField.readonly)
+                                    "
+                                    :aria-invalid="
+                                        Boolean(
+                                            nestedError(index, nestedField),
                                         )
                                     "
-                                    class="rounded-md border border-dashed p-3 text-sm text-muted-foreground"
+                                    v-bind="
+                                        nestedField.dataAttributes ?? {}
+                                    "
+                                    @update:model-value="
+                                        updateNested(
+                                            update,
+                                            item,
+                                            index,
+                                            nestedField,
+                                            $event,
+                                        )
+                                    "
+                                />
+                                <p
+                                    v-if="nestedError(index, nestedField)"
+                                    class="text-sm text-destructive"
+                                    role="alert"
                                 >
-                                    {{ nestedField.label ?? nestedField.name }}
-                                    uses {{ nestedField.component }}, which this
-                                    simple block editor does not render.
+                                    {{ nestedError(index, nestedField) }}
                                 </p>
-                            </template>
-                        </div>
+                                <p
+                                    v-else-if="nestedField.help"
+                                    class="text-sm text-muted-foreground"
+                                >
+                                    {{ nestedField.help }}
+                                </p>
+                            </div>
 
-                        <p v-else class="text-sm text-destructive" role="alert">
-                            Unknown block type “{{ blockType(item) }}”.
-                        </p>
-                    </article>
+                            <div
+                                v-else-if="
+                                    nestedField.component === 'Text'
+                                "
+                                class="space-y-2"
+                            >
+                                <label
+                                    :for="nestedId(index, nestedField)"
+                                    class="text-sm font-medium"
+                                >
+                                    {{ nestedField.label }}
+                                    <span
+                                        v-if="nestedRequired(nestedField)"
+                                        class="text-destructive"
+                                        aria-hidden="true"
+                                        >*</span
+                                    >
+                                </label>
+                                <Input
+                                    :id="nestedId(index, nestedField)"
+                                    :model-value="
+                                        nestedValue(item, nestedField)
+                                    "
+                                    :name="nestedPath(index, nestedField)"
+                                    :type="
+                                        String(
+                                            nestedField.inputType ?? 'text',
+                                        )
+                                    "
+                                    :placeholder="
+                                        nestedField.placeholder ?? undefined
+                                    "
+                                    :disabled="isLocked(nestedField)"
+                                    :readonly="
+                                        readonly ||
+                                        Boolean(nestedField.readonly)
+                                    "
+                                    :aria-invalid="
+                                        Boolean(
+                                            nestedError(index, nestedField),
+                                        )
+                                    "
+                                    v-bind="
+                                        nestedField.dataAttributes ?? {}
+                                    "
+                                    @update:model-value="
+                                        updateNested(
+                                            update,
+                                            item,
+                                            index,
+                                            nestedField,
+                                            $event,
+                                        )
+                                    "
+                                />
+                                <p
+                                    v-if="nestedError(index, nestedField)"
+                                    class="text-sm text-destructive"
+                                    role="alert"
+                                >
+                                    {{ nestedError(index, nestedField) }}
+                                </p>
+                                <p
+                                    v-else-if="nestedField.help"
+                                    class="text-sm text-muted-foreground"
+                                >
+                                    {{ nestedField.help }}
+                                </p>
+                            </div>
 
-                    <p
-                        v-if="items.length === 0"
-                        class="text-sm text-muted-foreground"
-                    >
-                        No blocks yet.
-                    </p>
-
-                    <div
-                        v-if="blockSets().length > 0"
-                        class="flex flex-wrap gap-2"
-                    >
-                        <Button
-                            v-for="set in blockSets()"
-                            :key="setType(set)"
-                            variant="outline"
-                            :disabled="!canAddSet(items, set, canAppend)"
-                            @click="appendBlock(setType(set))"
-                        >
-                            Add {{ setLabel(set) }}
-                        </Button>
+                            <p
+                                v-else-if="
+                                    !supportedComponents.has(
+                                        nestedField.component,
+                                    )
+                                "
+                                class="rounded-md border border-dashed p-3 text-sm text-muted-foreground"
+                            >
+                                {{ nestedField.label ?? nestedField.name }}
+                                uses {{ nestedField.component }}, which this
+                                simple block editor does not render.
+                            </p>
+                        </template>
                     </div>
-                    <p v-else class="text-sm text-muted-foreground">
-                        No block sets are configured.
+
+                    <p v-else class="text-sm text-destructive" role="alert">
+                        Unknown block type “{{ blockType(item) }}”.
                     </p>
+                </article>
+
+                <p
+                    v-if="items.length === 0"
+                    class="text-sm text-muted-foreground"
+                >
+                    No blocks yet.
+                </p>
+
+                <div
+                    v-if="blockSets().length > 0"
+                    class="flex flex-wrap gap-2"
+                >
+                    <Button
+                        v-for="set in blockSets()"
+                        :key="setType(set)"
+                        variant="outline"
+                        :disabled="!canAddSet(items, set, canAppend)"
+                        @click="appendBlock(setType(set))"
+                    >
+                        Add {{ setLabel(set) }}
+                    </Button>
                 </div>
-            </template>
+                <p v-else class="text-sm text-muted-foreground">
+                    No block sets are configured.
+                </p>
+            </div>
         </FormCollection>
     </FieldShell>
 </template>

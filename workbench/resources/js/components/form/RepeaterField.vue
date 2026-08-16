@@ -48,70 +48,72 @@ function nestedError(index: number, key: string): string | null {
     :error="error"
     :required="required"
   >
-    <FormCollection :form="form" :name="name">
-      <template #default="{ items, keys, append, update, remove, move }">
-        <div class="space-y-3">
-          <article
-            v-for="(item, index) in items"
-            :key="keys[index]"
-            class="space-y-3 rounded-lg border bg-muted/30 p-4"
-          >
-            <div class="flex items-center justify-between gap-3">
-              <strong class="text-sm">Project {{ index + 1 }}</strong>
-              <div class="flex gap-1">
-                <Button
-                  variant="ghost"
-                  :disabled="index === 0"
-                  aria-label="Move project up"
-                  @click="move(index, index - 1)"
-                >
-                  ↑
-                </Button>
-                <Button
-                  variant="ghost"
-                  :disabled="index === items.length - 1"
-                  aria-label="Move project down"
-                  @click="move(index, index + 1)"
-                >
-                  ↓
-                </Button>
-                <Button
-                  variant="destructive"
-                  :disabled="items.length <= Number(field.minItems ?? 0)"
-                  @click="remove(index)"
-                >
-                  Remove
-                </Button>
-              </div>
+    <FormCollection
+      :form="form"
+      :name="name"
+      v-slot="{ items, keys, append, update, remove, move }"
+    >
+      <div class="space-y-3">
+        <article
+          v-for="(item, index) in items"
+          :key="keys[index]"
+          class="space-y-3 rounded-lg border bg-muted/30 p-4"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <strong class="text-sm">Project {{ index + 1 }}</strong>
+            <div class="flex gap-1">
+              <Button
+                variant="ghost"
+                :disabled="index === 0"
+                aria-label="Move project up"
+                @click="move(index, index - 1)"
+              >
+                ↑
+              </Button>
+              <Button
+                variant="ghost"
+                :disabled="index === items.length - 1"
+                aria-label="Move project down"
+                @click="move(index, index + 1)"
+              >
+                ↓
+              </Button>
+              <Button
+                variant="destructive"
+                :disabled="items.length <= Number(field.minItems ?? 0)"
+                @click="remove(index)"
+              >
+                Remove
+              </Button>
             </div>
+          </div>
 
-            <Input
-              :model-value="row(item).title"
-              :name="`${name}.${index}.title`"
-              placeholder="Project title"
-              :aria-invalid="Boolean(nestedError(index, 'title'))"
-              @update:model-value="updateRow(update, item, index, 'title', $event)"
-            />
-            <p v-if="nestedError(index, 'title')" class="text-sm text-destructive">
-              {{ nestedError(index, "title") }}
-            </p>
-            <Textarea
-              :model-value="row(item).summary"
-              :name="`${name}.${index}.summary`"
-              placeholder="A short summary"
-              @update:model-value="updateRow(update, item, index, 'summary', $event)"
-            />
-          </article>
+          <Input
+            :model-value="row(item).title"
+            :name="`${name}.${index}.title`"
+            placeholder="Project title"
+            :aria-invalid="Boolean(nestedError(index, 'title'))"
+            @update:model-value="updateRow(update, item, index, 'title', $event)"
+          />
+          <p v-if="nestedError(index, 'title')" class="text-sm text-destructive">
+            {{ nestedError(index, "title") }}
+          </p>
+          <Textarea
+            :model-value="row(item).summary"
+            :name="`${name}.${index}.summary`"
+            placeholder="A short summary"
+            @update:model-value="updateRow(update, item, index, 'summary', $event)"
+          />
+        </article>
 
-          <Button
-            variant="outline"
-            :disabled="items.length >= Number(field.maxItems ?? Infinity)"
-            @click="append({ title: '', summary: '' })"
-          >
-            Add project
-          </Button>
-        </div>
-      </template>
+        <Button
+          variant="outline"
+          :disabled="items.length >= Number(field.maxItems ?? Infinity)"
+          @click="append({ title: '', summary: '' })"
+        >
+          Add project
+        </Button>
+      </div>
     </FormCollection>
   </FieldShell>
 </template>

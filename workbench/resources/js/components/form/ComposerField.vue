@@ -85,37 +85,40 @@ function selected(
         @blur="blur"
       />
 
-      <FormUploads v-if="field.allowAttachments === true" :form="form" :name="`${name}.attachments`">
-        <template #default="{ state, upload, remove }">
-          <div class="border-t bg-muted/30 p-3">
-            <ul v-if="state.files.length" class="mb-3 flex flex-wrap gap-2">
-              <li
-                v-for="(file, index) in state.files"
-                :key="file.key"
-                class="inline-flex items-center gap-2 rounded-md border bg-card px-2 py-1 text-xs"
-              >
-                <span class="max-w-40 truncate">{{ file.name }}</span>
-                <button type="button" aria-label="Remove attachment" @click="remove(index)">×</button>
-              </li>
-            </ul>
-            <div class="flex items-center justify-between gap-3">
-              <label class="cursor-pointer text-sm font-medium text-primary">
-                Add attachment
-                <input
-                  type="file"
-                  class="sr-only"
-                  :multiple="true"
-                  :disabled="disabled || readonly || state.status === 'uploading'"
-                  :accept="Array.isArray(field.accept) ? field.accept.join(',') : field.accept"
-                  @change="selected($event, upload)"
-                />
-              </label>
-              <span class="text-xs text-muted-foreground">
-                {{ state.status === "uploading" ? `${state.progress ?? 0}%` : `${state.files.length} attached` }}
-              </span>
-            </div>
+      <FormUploads
+        v-if="field.allowAttachments === true"
+        :form="form"
+        :name="`${name}.attachments`"
+        v-slot="{ state, upload, remove }"
+      >
+        <div class="border-t bg-muted/30 p-3">
+          <ul v-if="state.files.length" class="mb-3 flex flex-wrap gap-2">
+            <li
+              v-for="(file, index) in state.files"
+              :key="file.key"
+              class="inline-flex items-center gap-2 rounded-md border bg-card px-2 py-1 text-xs"
+            >
+              <span class="max-w-40 truncate">{{ file.name }}</span>
+              <button type="button" aria-label="Remove attachment" @click="remove(index)">×</button>
+            </li>
+          </ul>
+          <div class="flex items-center justify-between gap-3">
+            <label class="cursor-pointer text-sm font-medium text-primary">
+              Add attachment
+              <input
+                type="file"
+                class="sr-only"
+                :multiple="true"
+                :disabled="disabled || readonly || state.status === 'uploading'"
+                :accept="Array.isArray(field.accept) ? field.accept.join(',') : field.accept"
+                @change="selected($event, upload)"
+              />
+            </label>
+            <span class="text-xs text-muted-foreground">
+              {{ state.status === "uploading" ? `${state.progress ?? 0}%` : `${state.files.length} attached` }}
+            </span>
           </div>
-        </template>
+        </div>
       </FormUploads>
     </div>
   </FieldShell>

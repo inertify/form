@@ -63,97 +63,92 @@ defineProps<{
       {{ flash.success }}
     </div>
 
-    <Form :form="form">
-      <template #default="{ form: formApi, submit, isDirty, processing }">
-        <form class="space-y-5" novalidate @submit.prevent="submit()">
-          <FormErrors :form="formApi">
-            <template #default="{ entries, hasErrors }">
-              <Card v-if="hasErrors" class="border-destructive/30">
-                <p class="font-medium text-destructive">Please review these fields:</p>
-                <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-destructive">
-                  <li v-for="entry in entries" :key="entry.name">
-                    <a :href="`#field-${entry.name.replace(/[^a-z0-9_-]/gi, '-')}`">
-                      {{ entry.message }}
-                    </a>
-                  </li>
-                </ul>
-              </Card>
-            </template>
-          </FormErrors>
+    <Form
+      :form="form"
+      class="space-y-5"
+      v-slot="{ form: formApi, isDirty, processing }"
+    >
+      <FormErrors :form="formApi" v-slot="{ entries, hasErrors }">
+        <Card v-if="hasErrors" class="border-destructive/30">
+          <p class="font-medium text-destructive">Please review these fields:</p>
+          <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-destructive">
+            <li v-for="entry in entries" :key="entry.name">
+              <a :href="`#field-${entry.name.replace(/[^a-z0-9_-]/gi, '-')}`">
+                {{ entry.message }}
+              </a>
+            </li>
+          </ul>
+        </Card>
+      </FormErrors>
 
-          <FormWizard :form="formApi">
-            <template
-              #default="{
-                steps,
-                current,
-                currentIndex,
-                completed,
-                isFirst,
-                isLast,
-                labels,
-                goTo,
-                next,
-                previous,
+      <FormWizard
+        :form="formApi"
+        v-slot="{
+          steps,
+          current,
+          currentIndex,
+          completed,
+          isFirst,
+          isLast,
+          labels,
+          goTo,
+          next,
+          previous,
+        }"
+      >
+        <ol class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Form progress">
+          <li v-for="step in steps" :key="step.id">
+            <button
+              type="button"
+              class="w-full rounded-lg border px-3 py-3 text-left text-sm transition hover:bg-muted"
+              :class="{
+                'border-primary bg-primary/5': step.index === currentIndex,
+                'text-muted-foreground': step.index !== currentIndex,
               }"
+              :aria-current="step.index === currentIndex ? 'step' : undefined"
+              @click="goTo(step.index)"
             >
-              <ol class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Form progress">
-                <li v-for="step in steps" :key="step.id">
-                  <button
-                    type="button"
-                    class="w-full rounded-lg border px-3 py-3 text-left text-sm transition hover:bg-muted"
-                    :class="{
-                      'border-primary bg-primary/5': step.index === currentIndex,
-                      'text-muted-foreground': step.index !== currentIndex,
-                    }"
-                    :aria-current="step.index === currentIndex ? 'step' : undefined"
-                    @click="goTo(step.index)"
-                  >
-                    <span class="block text-xs uppercase tracking-wide">
-                      {{ completed.has(step.id) ? "Complete" : `Step ${step.index + 1}` }}
-                    </span>
-                    <strong class="mt-1 block text-foreground">{{ step.label }}</strong>
-                  </button>
-                </li>
-              </ol>
+              <span class="block text-xs uppercase tracking-wide">
+                {{ completed.has(step.id) ? "Complete" : `Step ${step.index + 1}` }}
+              </span>
+              <strong class="mt-1 block text-foreground">{{ step.label }}</strong>
+            </button>
+          </li>
+        </ol>
 
-              <Card v-if="current">
-                <header class="mb-6 border-b pb-4">
-                  <h2 class="text-xl font-semibold">{{ current.label }}</h2>
-                  <p v-if="current.description" class="mt-1 text-sm text-muted-foreground">
-                    {{ current.description }}
-                  </p>
-                </header>
+        <Card v-if="current">
+          <header class="mb-6 border-b pb-4">
+            <h2 class="text-xl font-semibold">{{ current.label }}</h2>
+            <p v-if="current.description" class="mt-1 text-sm text-muted-foreground">
+              {{ current.description }}
+            </p>
+          </header>
 
-                <div class="space-y-6">
-                  <FormFields :form="formApi" :fields="current.fieldset.fields" />
-                </div>
+          <div class="space-y-6">
+            <FormFields :form="formApi" :fields="current.fieldset.fields" />
+          </div>
 
-                <footer class="mt-8 flex items-center justify-between gap-3 border-t pt-5">
-                  <Button variant="outline" :disabled="isFirst || processing" @click="previous">
-                    {{ labels.previous }}
-                  </Button>
+          <footer class="mt-8 flex items-center justify-between gap-3 border-t pt-5">
+            <Button variant="outline" :disabled="isFirst || processing" @click="previous">
+              {{ labels.previous }}
+            </Button>
 
-                  <Button v-if="!isLast" :disabled="processing" @click="next">
-                    {{ labels.next }}
-                  </Button>
+            <Button v-if="!isLast" :disabled="processing" @click="next">
+              {{ labels.next }}
+            </Button>
 
-                  <FormSubmit v-else :form="formApi">
-                    <template #default="{ processing: submitting, canSubmit }">
-                      <Button type="submit" :disabled="!canSubmit || submitting">
-                        {{ submitting ? "Saving…" : labels.submit }}
-                      </Button>
-                    </template>
-                  </FormSubmit>
-                </footer>
-              </Card>
-            </template>
-          </FormWizard>
+            <FormSubmit v-else :form="formApi" v-slot="{ processing: submitting, canSubmit }">
+              <Button type="submit" :disabled="!canSubmit || submitting">
+                {{ submitting ? "Saving…" : labels.submit }}
+              </Button>
+            </FormSubmit>
+          </footer>
+        </Card>
+      </FormWizard>
 
-          <p class="text-center text-xs text-muted-foreground">
-            {{ isDirty ? "You have unsaved changes." : "Form values match their defaults." }}
-          </p>
-        </form>
-      </template>
+      <p class="text-center text-xs text-muted-foreground">
+        {{ isDirty ? "You have unsaved changes." : "Form values match their defaults." }}
+      </p>
     </Form>
   </main>
 </template>

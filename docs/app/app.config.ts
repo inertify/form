@@ -24,7 +24,7 @@ export default defineAppConfig({
   },
 
   github: {
-    url: 'https://github.com/enkot/inertify-form',
+    url: 'https://github.com/inertify/form',
     branch: 'main',
     rootDir: 'docs',
   },
@@ -38,11 +38,24 @@ export default defineAppConfig({
       codeIcon: {
         php: 'i-vscode-icons-file-type-php2',
       },
+      pre: {
+        slots: {
+          // Keep code blocks dark in both color modes. `dark` scopes the UI
+          // color tokens and Shiki's dark theme to this subtree only.
+          root: 'dark',
+          header: 'px-5 py-3.5',
+          copy: 'top-[13px] end-[13px]',
+          // Scroll long lines instead of wrapping them. Line numbers come from
+          // the `line` attribute Shiki sets on each line (see app.css).
+          base: 'px-5 py-4 whitespace-pre wrap-normal **:[.line.highlight]:-mx-5 **:[.line.highlight]:px-5',
+        },
+      },
     },
     pageHero: {
       slots: {
         title: 'font-semibold sm:text-6xl',
-        container: '!pb-0',
+        // Halve the theme's top padding; the hero card carries the height.
+        container: '!pb-0 pt-12 sm:pt-16 lg:pt-20',
       },
     },
     pageCard: {
@@ -60,7 +73,7 @@ export default defineAppConfig({
         {
           icon: 'i-simple-icons-github',
           label: 'GitHub repository',
-          to: 'https://github.com/enkot/inertify-form',
+          to: 'https://github.com/inertify/form',
           target: '_blank',
         },
         {

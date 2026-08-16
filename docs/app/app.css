@@ -1,3 +1,15 @@
+/* Line numbers, from the `line` attribute Shiki sets on each line. Only
+   multi-line blocks get a gutter, so single-line commands stay clean. */
+.shiki:has(.line[line="2"]) .line::before {
+  content: attr(line);
+  display: inline-block;
+  min-width: 2ch;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: var(--ui-text-dimmed);
+  user-select: none;
+}
+
 @theme static {
   --font-sans: "Instrument Sans", sans-serif;
   --color-laravel: #ff2d20;

@@ -5,8 +5,11 @@ seo:
 ---
 
 ::u-page-hero
+---
+orientation: horizontal
+---
 #title
-[Laravel]{.text-laravel} owns the form. :br Your app owns the [UI.]{.text-primary}
+[Laravel]{.text-primary} owns the form. :br Your app owns the [UI.]{.text-primary}
 
 #description
 Define schema, authorization, validation, and uploads once in Laravel. :br Render every control with your own Vue components and design system.
@@ -28,22 +31,14 @@ Define schema, authorization, validation, and uploads once in Laravel. :br Rende
   icon: i-simple-icons-github
   size: xl
   target: _blank
-  to: https://github.com/enkot/inertify-form
+  to: https://github.com/inertify/form
   variant: outline
   ---
   View on GitHub
   :::
 
 #headline
-  :::div{.flex.flex-col.items-center.gap-4}
-    ::::nuxt-img
-    ---
-    alt: Inertify Form
-    class: h-16 mb-4 w-auto
-    src: /inertify-logo.svg
-    ---
-    ::::
-
+  :::div{.flex.flex-col.items-start.gap-4}
     ::::u-button
     ---
     color: neutral
@@ -54,6 +49,116 @@ Define schema, authorization, validation, and uploads once in Laravel. :br Rende
     ---
     Laravel + Inertia + Vue
     ::::
+  :::
+
+#default
+  :::hero-form-showcase
+  #php
+  ```php
+  <?php
+
+  namespace App\Forms;
+
+  use Inertify\Form\Fields\Checkbox;
+  use Inertify\Form\Fields\Combobox;
+  use Inertify\Form\Fields\Fieldset;
+  use Inertify\Form\Fields\File;
+  use Inertify\Form\Fields\Radio;
+  use Inertify\Form\Fields\TextInput;
+  use Inertify\Form\Fields\Toggle;
+  use Inertify\Form\Form;
+
+  final class ProfileForm extends Form
+  {
+      public function fields(): array
+      {
+          return [
+              Fieldset::make()
+                  ->id('main')
+                  ->fields([
+                      File::make('avatar', 'Avatar')
+                          ->image()
+                          ->maxSize(5 * 1024),
+                      TextInput::make('name', 'Name')
+                          ->required()
+                          ->precognitive(),
+                      TextInput::make('email', 'Email')
+                          ->email()
+                          ->required()
+                          ->precognitive(),
+                      Combobox::make('skill', 'Primary skill')
+                          ->source(route('skills.index'))
+                          ->searchable()
+                          ->preload()
+                          ->required(),
+                      TextInput::make('company', 'Company')
+                          ->visibleWhen('is_employed', true)
+                          ->clearWhenHidden(),
+                  ]),
+              Fieldset::make()
+                  ->id('extra')
+                  ->fields([
+                      Radio::make('work_mode', 'Preferred work mode')
+                          ->options([
+                              'remote' => 'Remote',
+                              'hybrid' => 'Hybrid',
+                              'office' => 'Office',
+                          ])
+                          ->default('remote'),
+                      Checkbox::make('is_employed', 'Currently employed')
+                          ->default(true),
+                      Toggle::make('notifications', 'Project notifications')
+                          ->default(true),
+                  ]),
+          ];
+      }
+  }
+  ```
+
+  #vue
+  ```vue
+  <script setup lang="ts">
+  import {
+    Form,
+    FormFieldsets,
+    FormSubmit,
+    type FormResource,
+  } from '@inertify/form-vue'
+  import { FormField, FormFields } from '@/components/form'
+  import Button from '@/components/ui/Button.vue'
+  import Card from '@/components/ui/Card.vue'
+
+  defineProps<{ form: FormResource }>()
+  </script>
+
+  <template>
+    <Form :form="form" v-slot="{ form: api, processing, canSubmit }">
+      <Card class="space-y-5">
+        <FormField name="avatar" />
+
+        <FormFieldsets v-slot="{ id, fieldset }">
+            <section
+              :class="id === 'main'
+                ? 'grid gap-4 sm:grid-cols-2'
+                : 'space-y-4'"
+            >
+              <FormFields
+                :fieldset="fieldset"
+                except="avatar"
+              />
+          </section>
+        </FormFieldsets>
+
+        <Button
+          type="submit"
+          :disabled="!canSubmit || processing"
+        >
+          {{ processing ? 'Saving…' : 'Save profile' }}
+        </Button>
+      </Card>
+    </Form>
+  </template>
+  ```
   :::
 ::
 
