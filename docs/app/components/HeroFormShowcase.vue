@@ -90,10 +90,10 @@ function hideSpotlight() {
     aria-label="Interactive profile form example"
     class="relative mx-auto w-full min-w-0 max-w-xl"
   >
-    <!-- <div
+    <div
       aria-hidden="true"
       class="absolute -inset-6 -z-10 rounded-[2.5rem] bg-primary/10 blur-3xl dark:bg-primary/5"
-    /> -->
+    />
 
     <div
       class="dark relative min-w-0 rounded-2xl border border-default bg-default shadow-2xl shadow-black/10 ring-1 ring-green-950/5 dark:shadow-black/30 dark:ring-white/5 [--spotlight-size:520px] before:pointer-events-none before:absolute before:-inset-px before:rounded-[inherit] before:bg-[radial-gradient(var(--spotlight-size)_var(--spotlight-size)_at_calc(var(--spotlight-x,0px))_calc(var(--spotlight-y,0px)),var(--ui-primary),transparent_70%)] before:opacity-0 before:transition-opacity before:duration-300"
