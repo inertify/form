@@ -24,6 +24,16 @@ export default defineNuxtConfig({
     provider: 'none',
   },
 
+  // Every face is subset, and @nuxt/fonts never preloads a face that carries a
+  // unicode-range, so the fonts were fetched only after layout and every page
+  // painted in the fallback first. Latin-only keeps the preloaded set small.
+  fonts: {
+    defaults: {
+      subsets: ['latin'],
+      preload: true,
+    },
+  },
+
   content: {
     build: {
       markdown: {

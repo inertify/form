@@ -1,0 +1,40 @@
+# Render Blueprint for the Inertify Form documentation site.
+#
+# A Blueprint must live at the repository root, while the site itself lives in
+# docs/ — hence rootDir. `name` must match the existing service in the Render
+# dashboard exactly: Render applies a Blueprint to a service of the same name,
+# and creates a brand new one (with a new onrender.com hostname) otherwise. That
+# hostname is the rewrite destination in the landing site's Blueprint, so a
+# rename there means updating it here too.
+services:
+  - name: form
+    type: web
+    runtime: static
+    rootDir: docs
+    buildCommand: npm install && npm run generate
+    # Relative to the repo root, not to rootDir.
+    staticPublishPath: ./docs/.output/public
+
+    headers:
+      # Render serves every static asset with `max-age=0` by default, so
+      # browsers cache nothing: fonts are re-fetched on each visit (text paints
+      # in the fallback, then reflows) and prefetched route chunks have to be
+      # revalidated before they can be used. These filenames are content-hashed,
+      # so they can be cached indefinitely.
+      #
+      # The paths are unprefixed even though visitors request /form/_nuxt/… —
+      # the landing site's rewrite strips /form before this service sees it.
+      - path: /_nuxt/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /_fonts/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+    # Set so sitemap, canonical, Open Graph, and llms.txt URLs use the public
+    # /form URL rather than this service's onrender.com hostname. Uncomment only
+    # after confirming it is not already set in the dashboard — a Blueprint value
+    # overwrites what is configured there.
+    # envVars:
+      - key: NUXT_SITE_URL
+        value: https://inertify.dev/form
