@@ -16,12 +16,8 @@ export default defineAppConfig({
   header: {
     title: 'Inertify Form',
     logo: {
-      // Relative, not root-absolute: Nuxt UI's ColorModeImage prefixes an
-      // absolute src with app.baseURL, and @nuxt/image prefixes it again for
-      // the /_ipx endpoint, producing /form/_ipx/_/form/… which IPX can't
-      // resolve. A relative src is passed through untouched.
-      light: 'inertify-logo.svg',
-      dark: 'inertify-logo.svg',
+      light: '/inertify-logo.svg',
+      dark: '/inertify-logo.svg',
       alt: 'Inertify Form',
       favicon: '/favicon.svg',
     },

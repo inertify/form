@@ -15,6 +15,15 @@ export default defineNuxtConfig({
     },
   },
 
+  // Nuxt UI's ColorModeImage resolves an absolute src against app.baseURL, and
+  // the IPX provider prefixes it a second time for its endpoint, producing
+  // /form/_ipx/_/form/… which IPX cannot resolve. Nothing here is worth
+  // optimizing — the only assets are logos and favicons — so skip IPX and let
+  // sources through untouched.
+  image: {
+    provider: 'none',
+  },
+
   content: {
     build: {
       markdown: {
