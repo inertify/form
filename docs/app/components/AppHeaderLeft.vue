@@ -17,7 +17,7 @@ const ariaLabel = appConfig.header?.title || site.name
       class="inline-flex items-center gap-2"
     >
       <AppHeaderLogo class="h-6 w-auto shrink-0" />
-      <span class="text-3xl text-primary">inertify</span>
+      <span class="text-3xl font-bold tracking-tight font-heading italic text-primary">inertify</span>
     </a>
     <span class="text-lg text-muted">|</span>
     <NuxtLink
