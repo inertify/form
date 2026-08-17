@@ -32,9 +32,8 @@ services:
         value: public, max-age=31536000, immutable
 
     # Set so sitemap, canonical, Open Graph, and llms.txt URLs use the public
-    # /form URL rather than this service's onrender.com hostname. Uncomment only
-    # after confirming it is not already set in the dashboard — a Blueprint value
-    # overwrites what is configured there.
-    # envVars:
+    # /form URL rather than this service's onrender.com hostname. This overwrites
+    # whatever is configured in the dashboard.
+    envVars:
       - key: NUXT_SITE_URL
         value: https://inertify.dev/form
