@@ -12,8 +12,8 @@ services:
     runtime: static
     rootDir: docs
     buildCommand: npm install && npm run generate
-    # Relative to the repo root, not to rootDir.
-    staticPublishPath: ./docs/.output/public
+    # Relative to rootDir, so this resolves to docs/.output/public.
+    staticPublishPath: ./.output/public
 
     headers:
       # Render serves every static asset with `max-age=0` by default, so
