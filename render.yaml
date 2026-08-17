@@ -31,6 +31,25 @@ services:
         name: Cache-Control
         value: public, max-age=31536000, immutable
 
+      # A client-side navigation blocks on the target route's payload, which
+      # Nuxt prefetches through its `link:prefetch` hook. Uncached, the prefetch
+      # is wasted and the navigation refetches it. Requests carry a
+      # `?_b=<build-id>` query, so a deploy busts these — but not `immutable`,
+      # in case anything ever asks for one without the query.
+      - path: /_payload.json
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /**/_payload.json
+        name: Cache-Control
+        value: public, max-age=3600
+
+      # The client-side content database (~94 KB). Its URL carries no hash or
+      # build id at all, so this stays short: a long cache would leave a stale
+      # content DB behind freshly deployed HTML.
+      - path: /__nuxt_content/*
+        name: Cache-Control
+        value: public, max-age=300
+
     # Set so sitemap, canonical, Open Graph, and llms.txt URLs use the public
     # /form URL rather than this service's onrender.com hostname. This overwrites
     # whatever is configured in the dashboard.
